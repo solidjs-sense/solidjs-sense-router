@@ -18,5 +18,5 @@ export const api = {
   unPopState: (cb: (event: PopStateEvent) => void) => {
     if (!api.isClient) return;
     window.removeEventListener('popstate', cb);
-  }
-}
+  },
+};
