@@ -1,6 +1,6 @@
 # solid-sense-router
 
-Router of solidjs that make sense.
+The SolidJs Router that make sense.
 
 ## Installation
 
