@@ -1,16 +1,16 @@
-# solid-sense-router
+# solidjs-sense-router
 
 The SolidJs Router that make sense.
 
 ## Installation
 
-`npm install solid-sense-router` or `yarn add solid-sense-router`
+`npm install solidjs-sense-router` or `yarn add solidjs-sense-router`
 
 ## Usage
 
 ``` typescriptreact
 import { render } from 'solid-js/web';
-import { useNavigator, useRouter } from "solid-sense-router";
+import { useNavigator, useRouter } from "solidjs-sense-router";
 
 const routes = [
   {
