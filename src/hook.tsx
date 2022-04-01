@@ -1,4 +1,15 @@
-import { batch, createContext, createEffect, createSignal, onCleanup, untrack, useContext, useTransition, Suspense } from "solid-js";
+import {
+  batch,
+  createContext,
+  createEffect,
+  createSignal,
+  onCleanup,
+  untrack,
+  useContext,
+  useTransition,
+  Suspense,
+  createMemo
+} from "solid-js";
 import { Dynamic } from "solid-js/web";
 import { api } from "./api";
 import { RouteDefinition, RouterComponent, RouteState, UrlParams } from "./types";
@@ -28,10 +39,19 @@ export const setRouteState = (state: any) => {
   useRouteState().setState(state)
 }
 
+export const useLoading = () => {
+  return useRouteState().pending
+}
+
 export const useLocation = () => {
   const state = useRouteState()
   return {
+    // does not include base
     url: state.url,
+    // include base
+    fullUrl: createMemo(() => {
+      return joinBase(state.base(), state.url())
+    }),
     base: state.base,
     state: state.state
   };
@@ -117,10 +137,10 @@ export const useRouter = (route: RouteDefinition | RouteDefinition[]) => {
     })
 
     createEffect(() => {
-      const { url } = location
+      const url = location.url()
       const route = routes.find(route => {
         // TODO
-        return route.path === url().pathname
+        return route.path === url.pathname
       })
       start(() => setRouter(route?.component ? () => route.component : undefined))
     })
