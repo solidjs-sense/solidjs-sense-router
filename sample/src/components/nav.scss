@@ -1,0 +1,53 @@
+.nav-ctn {
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  height: 60px;
+  background: skyblue;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+
+  a {
+    border: none;
+    background: none;
+    height: 60px;
+    line-height: 60px;
+    color: #fff;
+    font-size: 1.6rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0 22px;
+    text-decoration: none;
+
+    &.active,
+    &:hover {
+      color: #333;
+      background: aliceblue;
+      text-decoration: underline;
+    }
+  }
+
+  .right {
+    flex: 1;
+    text-align: right;
+    height: 100%;
+
+    button {
+      padding: 0 22px;
+      background: transparent;
+      height: 60px;
+      line-height: 60px;
+      border: 0;
+      color: #fff;
+      cursor: pointer;
+      font-size: 18px;
+
+      &:hover {
+        color: #333;
+        background: aliceblue;
+      }
+    }
+  }
+}

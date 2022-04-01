@@ -1,0 +1,11 @@
+{
+  "extends": [
+    "stylelint-config-standard-scss",
+    "stylelint-prettier/recommended"
+  ],
+  "rules": {
+    "number-max-precision": 5,
+    "color-function-notation": "legacy",
+    "alpha-value-notation": "number"
+  }
+}

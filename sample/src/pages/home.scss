@@ -1,0 +1,17 @@
+.home-ctn {
+  display: flex;
+  flex: 1;
+
+  .content {
+    margin-top: 60px;
+    margin-left: 40px;
+
+    h1 {
+      font-size: 40px;
+    }
+
+    p {
+      font-size: 20px;
+    }
+  }
+}
