@@ -10,7 +10,7 @@ export const Router = (props: { url?: string, children: JSX.Element}) => {
 
   const [pending, setPending] = createSignal(false)
   const [base, setBase] = createSignal('')
-  const [url, setUrl] = createSignal<URL>(new URL(api.isClient ? api.href : props.url!))
+  const [url, setUrl] = createSignal<URL>(new URL(api.isClient && api.href ? api.href : props.url!))
   const [state, setState] = createSignal<any>()
 
   return (

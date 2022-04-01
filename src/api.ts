@@ -1,7 +1,7 @@
 export const api = {
   isClient: typeof window !== 'undefined',
   get href() {
-    return this.isClient ? window.location.href : '';
+    return this.isClient ? window.location.href : undefined;
   },
   pushState: (state: any, url: string | URL) => {
     if (!api.isClient) return;

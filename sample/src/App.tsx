@@ -1,9 +1,9 @@
 import { Component, createSignal, lazy } from "solid-js";
-import { useLoading, useNavigator, useRouter } from "./hook";
-import { Router } from "./router";
-import { RouteDefinition } from "./types";
+import { useLoading, useNavigator, useRouter } from "../../src/hook";
+import { Router } from "../../src/router";
+import { RouteDefinition } from "../../src/types";
 import './App.css'
-import { api } from "./api";
+import { api } from "../../src/api";
 
 const routes: RouteDefinition[] = [
   {
@@ -22,8 +22,9 @@ const routes: RouteDefinition[] = [
 const App: Component = () => {
   const Routers = useRouter(routes);
   const navigator = useNavigator();
+  const currentUrl = api.href !== undefined ? new URL(api.href): undefined
   const [base, setBase] = createSignal(
-    api.href && ['/zh', '/en'].indexOf(api.href) !== -1 ? new URL(api.href).pathname : ''
+    currentUrl && ['/zh', '/en'].indexOf(currentUrl.pathname) !== -1 ? currentUrl.pathname : ''
   )
   const loading = useLoading()
   return (

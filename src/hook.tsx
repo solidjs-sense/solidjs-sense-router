@@ -113,7 +113,8 @@ export const useRouter = (route: RouteDefinition | RouteDefinition[]) => {
     })
 
     const onPopstate = (evt: PopStateEvent) => {
-      const newURL = new URL(api.href)
+      // api.href should not be undefined when popstate event is triggered
+      const newURL = new URL(api.href!)
       const { base } = location
 
       if (base() && newURL.pathname.startsWith(base())) {
