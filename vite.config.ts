@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [
     solidPlugin(),
     dts({
-      tsConfigFilePath: 'tsconfig.json',
+      tsConfigFilePath: 'tsconfig.build.json',
       insertTypesEntry: true,
       noEmitOnError: true,
       skipDiagnostics: false,

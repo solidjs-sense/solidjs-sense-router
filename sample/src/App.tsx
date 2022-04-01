@@ -1,11 +1,8 @@
 import { Component, createSignal, lazy, onCleanup } from 'solid-js';
-import { useLoading, useNavigator, useRouter } from '../../src/hook';
-import { Router } from '../../src/router';
-import { RouteDefinition } from '../../src/types';
+import { useLoading, useNavigator, useRouter, Router } from '../..';
 import './App.scss';
-import { api } from '../../src/api';
 
-const routes: RouteDefinition[] = [
+const routes = [
   {
     path: '/',
     component: lazy(async () => {
@@ -23,8 +20,8 @@ const App: Component = () => {
   const bases = ['/zh', '/en'];
   const Routers = useRouter(routes);
   const navigator = useNavigator();
-  const currentUrl = api.href !== undefined ? new URL(api.href) : undefined;
-  const currentBase = currentUrl && bases.find((p) => currentUrl.pathname.startsWith(p));
+  const currentUrl = new URL(location.href);
+  const currentBase = bases.find((p) => currentUrl.pathname.startsWith(p));
   const [base, setBase] = createSignal(currentBase || '');
   const loading = useLoading();
 
