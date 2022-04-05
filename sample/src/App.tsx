@@ -40,6 +40,10 @@ export default () => {
     bases.find((p) => url.pathname.startsWith(p)) ||
     ((navigator.language || navigator.languages[0]).startsWith('zh') ? bases[0] : bases[1]);
 
+  if (/\/solidjs-sense-router\/?$/.test(url.pathname)) {
+    history.replaceState(history.state, document.title, currentBase);
+  }
+
   return (
     <Router defaultBase={currentBase}>
       <App />
