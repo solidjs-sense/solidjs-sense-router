@@ -2,6 +2,7 @@ import { Component, lazy } from 'solid-js';
 import { useLoading, useRoutes, Router } from '../..';
 import './App.scss';
 import { Nav } from './components/nav';
+import { bases } from './constant';
 
 const routes = [
   {
@@ -34,11 +35,10 @@ const App: Component = () => {
 };
 
 export default () => {
-  const bases = ['/zh', '/en'];
   const url = new URL(window.location.href);
   const currentBase =
     bases.find((p) => url.pathname.startsWith(p)) ||
-    ((navigator.language || navigator.languages[0]).startsWith('zh') ? '/zh' : '/en');
+    ((navigator.language || navigator.languages[0]).startsWith('zh') ? bases[0] : bases[1]);
 
   return (
     <Router defaultBase={currentBase}>

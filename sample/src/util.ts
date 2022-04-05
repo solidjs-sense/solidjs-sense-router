@@ -1,10 +1,11 @@
 import { useLocation } from '../..';
+import { bases } from './constant';
 import en from './locale/en';
 import zh from './locale/zh';
 
 const locales: Record<string, Record<string, string>> = {
-  '/zh': zh,
-  '/en': en,
+  [bases[0]]: zh,
+  [bases[1]]: en,
 };
 
 export const t = (text: string) => {

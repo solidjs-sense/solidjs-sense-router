@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigator } from '../../..';
+import { bases } from '../constant';
 import { t } from '../util';
 import './nav.scss';
 
@@ -6,7 +7,7 @@ export const Nav = () => {
   const location = useLocation();
   const changeBase = () => {
     const navigator = useNavigator();
-    navigator.newBase(location.base() === '/zh' ? '/en' : '/zh');
+    navigator.newBase(location.base() === bases[0] ? bases[1] : bases[0]);
   };
 
   return (

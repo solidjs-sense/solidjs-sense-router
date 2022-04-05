@@ -34,7 +34,7 @@
   "scripts": {
     "start": "cd sample && vite",
     "build": "vite build",
-    "build-sample": "cd sample && vite build",
+    "build-sample": "NODE_ENV=production cd sample && vite build",
     "lint-ts": "eslint . --ext .ts,.tsx",
     "lint-ts-fix": "eslint --fix . --ext .ts,.tsx",
     "lint-scss": "stylelint './sample/src/**/*.scss'",
