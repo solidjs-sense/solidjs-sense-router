@@ -45,20 +45,29 @@ p {
 }
 
 .loading {
-  position: absolute;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background-color: green;
-  z-index: 9998;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: green;
+    z-index: 9998;
+  }
 
   &.start {
-    animation: loading-start 3s ease-out;
-    animation-fill-mode: forwards;
+    &::after {
+      animation: loading-start 3s ease-out;
+      animation-fill-mode: forwards;
+    }
   }
 
   &.done {
-    animation: loading-done 0.2s ease-in;
+    &::after {
+      animation: loading-done 0.2s ease-in;
+    }
   }
 }
 
