@@ -39,3 +39,10 @@ export interface RouteState {
   state: Accessor<any>;
   setState: (state: any) => void;
 }
+
+export interface LinkProps extends JSX.AnchorHTMLAttributes<HTMLAnchorElement> {
+  state?: any;
+  replace?: boolean;
+  queryParams?: Record<string, string>;
+  activeClass?: string;
+}

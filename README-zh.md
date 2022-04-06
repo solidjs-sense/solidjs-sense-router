@@ -66,11 +66,9 @@ render(() => <App />, document.getElementById('root') as HTMLElement);
     - `defaultBase`: 默认的 base (默认值: `''`)
 
 - `<Link ...props />`
-    - props:
-        - `children`: `JSX.Element`
-        - `href`: `string`
-        - `target?`: `_blank`
-        - `rel?`: 和 `a` 中的 `rel` 属性相同
+    - props: 和 `a` 标签的 props 相同 并且多了:
+        - `replace`: 是否替换当前的 url (默认值: `false`)
+        - `state`: 当前的 url 的 state (默认值: `undefined`)
         - `queryParams?`: `Record<string, string>` 当前地址的查询参数
         - `activeClass?`: 当前路由和 `href` 匹配，则添加 `activeClass` 类名到 `a` 标签上
 
