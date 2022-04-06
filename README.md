@@ -66,11 +66,9 @@ Components:
     - `defaultBase`: default base url (default: `''`)
 
 - `<Link ...props />`
-    - props:
-        - `children`: `JSX.Element`
-        - `href`: `string`
-        - `target?`: `_blank`
-        - `rel?`: same as `a` tag
+    - props: same as `a` tag and more have:
+        - `replace`: if true, replace current url (default: `false`)
+        - `state`: state object to push in history (default: `undefined`)
         - `queryParams?`: `Record<string, string>` query params
         - `activeClass?`: class name witch will be added to `a` tag when link's `href` is match by current route
 
