@@ -1,12 +1,12 @@
 import { Accessor, Component, JSX } from 'solid-js';
 
-export type RouterComponent =
-  | JSX.FunctionElement
-  | (Component<any> & {
-      preload: () => Promise<{
-        default: Component<any>;
-      }>;
-    });
+export type LazyComponent = Component<any> & {
+  preload: () => Promise<{
+    default: Component<any>;
+  }>;
+};
+
+export type RouterComponent = JSX.FunctionElement | LazyComponent;
 
 export interface Route {
   path: string;

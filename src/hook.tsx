@@ -1,16 +1,7 @@
-import {
-  batch,
-  createContext,
-  createEffect,
-  createSignal,
-  useContext,
-  useTransition,
-  Suspense,
-  createMemo,
-} from 'solid-js';
+import { batch, createContext, createEffect, createSignal, useContext, useTransition, createMemo } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { api } from './api';
-import { RouteDefinition, RouterComponent, RouteState, UrlParams } from './types';
+import { LazyComponent, RouteDefinition, RouterComponent, RouteState, UrlParams } from './types';
 import { baseRegex, flatRoutes, formatURL, joinBase, matchRoute, trimBase } from './util';
 
 export const RouteContext = createContext<RouteState>();
@@ -138,14 +129,10 @@ export const useNavigator = () => {
 
 export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
   return () => {
-    const [pending, start] = useTransition();
+    const [, start] = useTransition();
     const [router, setRouter] = createSignal<RouterComponent | undefined>();
     const location = useLocation();
     const routes = flatRoutes(([] as RouteDefinition[]).concat(route));
-
-    createEffect(() => {
-      setRoutePending(pending());
-    });
 
     createEffect(() => {
       const url = location.url();
@@ -156,6 +143,18 @@ export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
         return match;
       });
 
+      if ((route?.component as LazyComponent)?.preload) {
+        setRoutePending(true);
+        (route?.component as LazyComponent)
+          ?.preload()
+          .catch(() => {
+            // noop
+          })
+          .finally(() => {
+            setRoutePending(false);
+          });
+      }
+
       start(() => {
         batch(() => {
           setRouteParams(routeParams);
@@ -165,10 +164,6 @@ export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
       });
     });
 
-    return (
-      <Suspense>
-        <Dynamic component={router()} />
-      </Suspense>
-    );
+    return <Dynamic component={router()} />;
   };
 };
