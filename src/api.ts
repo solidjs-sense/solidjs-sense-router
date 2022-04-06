@@ -1,10 +1,12 @@
+import { Session } from './types';
+
 type PopStateCb = (...params: any[]) => void;
 
 class Api {
   // is client side
   isClient = typeof window !== 'undefined';
   // register session
-  private session?: () => any;
+  private session?: Session;
   // origin PopStateEvent descriptor getter
   private getEvtState?: () => any;
   // onPopState listener
@@ -45,13 +47,13 @@ class Api {
     (['pushState', 'replaceState'] as ['pushState', 'replaceState']).forEach((name) => {
       const func = history[name];
       history[name] = (state: any, unused: string, url?: string | URL | null) => {
-        const session = this.session?.();
-        func.call(history, { session, state }, unused, url);
+        func.call(history, { session: this.session, state }, unused, url);
+        this.session = undefined;
       };
     });
   }
 
-  registerSession(session: () => any) {
+  registerSession(session: Session) {
     this.session = session;
   }
 
@@ -59,13 +61,15 @@ class Api {
     this.session = undefined;
   }
 
-  pushState = (state: any, url: string | URL) => {
+  pushState = (url: string | URL, backSession: Session, state?: any) => {
     if (!api.isClient) return;
+    this.registerSession(backSession);
     history.pushState(state, '', url);
   };
 
-  replaceState = (state: any, url: string | URL) => {
+  replaceState = (url: string | URL, backSession: Session, state?: any) => {
     if (!api.isClient) return;
+    this.registerSession(backSession);
     history.replaceState(state, '', url);
   };
 

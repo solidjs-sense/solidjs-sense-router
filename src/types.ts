@@ -46,3 +46,9 @@ export interface LinkProps extends JSX.AnchorHTMLAttributes<HTMLAnchorElement> {
   queryParams?: Record<string, string>;
   activeClass?: string;
 }
+
+export interface Session {
+  url: string;
+  base: string;
+  state?: any;
+}

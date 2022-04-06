@@ -81,7 +81,7 @@ export const useLocation = () => {
 };
 
 const navigate = (params: UrlParams) => {
-  const { url, base } = useLocation();
+  const { url, base, state } = useLocation();
 
   const newURL = formatURL(params, url());
 
@@ -94,10 +94,18 @@ const navigate = (params: UrlParams) => {
 
   const displayUrl = joinBase(base(), new URL(newURL));
 
-  !params.replace ? api.pushState(params.state, displayUrl) : api.replaceState(params.state, displayUrl);
+  const backSession = {
+    url: newURL.toString(),
+    base: base(),
+    state: state(),
+  };
+
+  !params.replace
+    ? api.pushState(displayUrl, backSession, params.state)
+    : api.replaceState(displayUrl, backSession, params.state);
 };
 
-const newBase = (base: string) => {
+const newBase = (base: string, replace?: boolean) => {
   const location = useLocation();
   const oldBase = location.base();
 
@@ -117,7 +125,14 @@ const newBase = (base: string) => {
     setRouteState(undefined);
   });
 
-  api.pushState(undefined, joinBase(base, url));
+  const displayUrl = joinBase(base, url);
+  const backSession = {
+    url: url.toString(),
+    base,
+    state: undefined,
+  };
+
+  !replace ? api.pushState(displayUrl, backSession) : api.replaceState(displayUrl, backSession);
 };
 
 export const useNavigator = () => {

@@ -23,14 +23,6 @@ export const Router = (props: { url?: string; defaultBase?: string; children: JS
   }
   const [url, setUrl] = createSignal<URL>(defaultUrl);
 
-  api.registerSession(() => {
-    return {
-      url: url().toString(),
-      base: base(),
-      state: state(),
-    };
-  });
-
   const onPopstate = (session: { url: string; base: string; state?: any }) => {
     if (session) {
       batch(() => {
@@ -49,7 +41,15 @@ export const Router = (props: { url?: string; defaultBase?: string; children: JS
   });
 
   // update state
-  api.replaceState(state(), joinBase(base(), defaultUrl));
+  api.replaceState(
+    joinBase(base(), defaultUrl),
+    {
+      url: url().toString(),
+      base: base(),
+      state: state(),
+    },
+    state(),
+  );
 
   return (
     <RouteContext.Provider
