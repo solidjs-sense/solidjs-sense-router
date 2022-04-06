@@ -3,6 +3,7 @@ import { RouteContext, useMatch, useNavigator } from './hook';
 import { api } from './api';
 import { baseRegex, joinBase, trimBase } from './util';
 import { useLocation } from './hook';
+import { LinkProps } from './types';
 
 export const Router = (props: { url?: string; defaultBase?: string; children: JSX.Element }) => {
   console.assert(
@@ -72,23 +73,17 @@ export const Router = (props: { url?: string; defaultBase?: string; children: JS
   );
 };
 
-export const Link = (props: {
-  href: string;
-  target?: '_blank';
-  rel?: string;
-  queryParams?: Record<string, string>;
-  activeClass?: string;
-  children: JSX.Element;
-}) => {
+export const Link = (props: LinkProps) => {
   const location = useLocation();
-  const url = createMemo(() => new URL(props.href, location.url()));
+  const url = createMemo(() => new URL(props.href ?? '', location.url()));
 
   const classList = createMemo(() => {
     return props.activeClass
       ? {
           [props.activeClass]: useMatch(url().pathname)(),
+          ...(props.classList || {}),
         }
-      : {};
+      : { ...(props.classList || {}) };
   });
 
   const href = createMemo(() => {
@@ -102,19 +97,32 @@ export const Link = (props: {
     return newURL.href.replace(newURL.origin, '');
   });
 
-  const click = (e: Event) => {
-    if (props.target) {
-      return false;
+  const click = (
+    e: MouseEvent & {
+      currentTarget: HTMLAnchorElement;
+      target: Element;
+    },
+  ) => {
+    const { onClick } = props;
+    if (typeof onClick === 'function') {
+      onClick(e);
+    } else if (onClick && onClick[0] && typeof onClick[0] === 'function') {
+      onClick[0](onClick[1], e);
+    }
+    if (props.target === '_blank') {
+      return;
     }
     e.preventDefault();
     useNavigator().navigate({
-      url: props.href,
+      url: url(),
+      state: props.state,
+      replace: props.replace,
       queryParams: props.queryParams,
     });
   };
 
   return (
-    <a href={href()} onclick={click} rel={props.rel} target={props.target} classList={classList()}>
+    <a {...props} href={href()} onclick={click} classList={classList()}>
       {props.children}
     </a>
   );
