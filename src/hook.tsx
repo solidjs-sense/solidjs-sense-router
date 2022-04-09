@@ -1,4 +1,4 @@
-import { batch, createContext, createEffect, createSignal, useContext, useTransition, createMemo } from 'solid-js';
+import { batch, createContext, createEffect, createSignal, useContext, createMemo } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { api } from './api';
 import { LazyComponent, RouteDefinition, RouterComponent, RouteState, UrlParams } from './types';
@@ -10,30 +10,6 @@ export const useRouteState = () => {
   const state = useContext(RouteContext);
   console.assert(!!state, 'Router Hook function must be used within a <Router> component');
   return state!;
-};
-
-export const setRoutePending = (pending: boolean) => {
-  useRouteState().setPending(pending);
-};
-
-export const setRoute = (route?: string) => {
-  useRouteState().setRoute(route);
-};
-
-export const setRouteBase = (base: string) => {
-  useRouteState().setBase(base);
-};
-
-export const setRouteUrl = (url: URL) => {
-  useRouteState().setUrl(url);
-};
-
-export const setRouteState = (state: any) => {
-  useRouteState().setState(state);
-};
-
-export const setRouteParams = (params: Record<string, string>) => {
-  useRouteState().setRouteParams(params);
 };
 
 export const useRouteParams = () => {
@@ -80,16 +56,16 @@ export const useLocation = () => {
   };
 };
 
-const navigate = (params: UrlParams) => {
-  const { url, base, state } = useLocation();
+const navigate = (routeState: RouteState, location: ReturnType<typeof useLocation>, params: UrlParams) => {
+  const { url, base, state } = location;
 
   const newURL = formatURL(params, url());
 
   newURL.pathname = trimBase(base(), newURL);
 
   batch(() => {
-    setRouteUrl(newURL);
-    setRouteState(params.state);
+    routeState.setUrl(newURL);
+    routeState.setState(params.state);
   });
 
   const displayUrl = joinBase(base(), new URL(newURL));
@@ -105,8 +81,7 @@ const navigate = (params: UrlParams) => {
     : api.replaceState(displayUrl, backSession, params.state);
 };
 
-const newBase = (base: string, replace?: boolean) => {
-  const location = useLocation();
+const newBase = (routeState: RouteState, location: ReturnType<typeof useLocation>, base: string, replace?: boolean) => {
   const oldBase = location.base();
 
   if (base === oldBase) {
@@ -120,9 +95,9 @@ const newBase = (base: string, replace?: boolean) => {
   }
 
   batch(() => {
-    setRouteUrl(url);
-    setRouteBase(base);
-    setRouteState(undefined);
+    routeState.setUrl(url);
+    routeState.setBase(base);
+    routeState.setState(undefined);
   });
 
   const displayUrl = joinBase(base, url);
@@ -136,15 +111,22 @@ const newBase = (base: string, replace?: boolean) => {
 };
 
 export const useNavigator = () => {
+  const location = useLocation();
+  const routeState = useRouteState();
+
   return {
-    navigate,
-    newBase,
+    navigate: (params: UrlParams) => {
+      navigate(routeState, location, params);
+    },
+    newBase: (base: string, replace?: boolean) => {
+      newBase(routeState, location, base, replace);
+    },
   };
 };
 
 export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
   return () => {
-    const [, start] = useTransition();
+    const routeState = useRouteState();
     const [router, setRouter] = createSignal<RouterComponent | undefined>();
     const location = useLocation();
     const routes = flatRoutes(([] as RouteDefinition[]).concat(route));
@@ -159,23 +141,22 @@ export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
       });
 
       if ((route?.component as LazyComponent)?.preload) {
-        setRoutePending(true);
+        const routeState = useRouteState();
+        routeState.setPending(true);
         (route?.component as LazyComponent)
           ?.preload()
           .catch(() => {
             // noop
           })
           .finally(() => {
-            setRoutePending(false);
+            routeState.setPending(false);
           });
       }
 
-      start(() => {
-        batch(() => {
-          setRouteParams(routeParams);
-          setRoute(route?.path);
-          setRouter(() => route?.component);
-        });
+      batch(() => {
+        routeState.setRouteParams(routeParams);
+        routeState.setRoute(route?.path);
+        setRouter(() => route?.component);
       });
     });
 

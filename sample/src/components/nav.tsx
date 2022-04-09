@@ -5,8 +5,9 @@ import './nav.scss';
 
 export const Nav = () => {
   const location = useLocation();
+  const navigator = useNavigator();
+
   const changeBase = () => {
-    const navigator = useNavigator();
     navigator.newBase(location.base() === bases[0] ? bases[1] : bases[0]);
   };
 

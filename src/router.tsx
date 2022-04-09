@@ -74,6 +74,7 @@ export const Router = (props: { url?: string; defaultBase?: string; children: JS
 };
 
 export const Link = (props: LinkProps) => {
+  const navigator = useNavigator();
   const location = useLocation();
   const url = createMemo(() => new URL(props.href ?? '', location.url()));
 
@@ -113,7 +114,7 @@ export const Link = (props: LinkProps) => {
       return;
     }
     e.preventDefault();
-    useNavigator().navigate({
+    navigator.navigate({
       url: url(),
       state: props.state,
       replace: props.replace,
