@@ -1,5 +1,5 @@
 import { batch, createMemo, createSignal, JSX, onCleanup } from 'solid-js';
-import { RouteContext, useMatch, useNavigator } from './hook';
+import { RouteContext, RouterContext, useMatch, useNavigator } from './hook';
 import { api } from './api';
 import { baseRegex, joinBase, trimBase } from './util';
 import { useLocation } from './hook';
@@ -52,10 +52,8 @@ export const Router = (props: { url?: string; defaultBase?: string; children: JS
   );
 
   return (
-    <RouteContext.Provider
+    <RouterContext.Provider
       value={{
-        route,
-        setRoute,
         pending,
         setPending,
         base,
@@ -64,12 +62,19 @@ export const Router = (props: { url?: string; defaultBase?: string; children: JS
         setUrl,
         state,
         setState,
-        routeParams,
-        setRouteParams,
       }}
     >
-      {props.children}
-    </RouteContext.Provider>
+      <RouteContext.Provider
+        value={{
+          route,
+          setRoute,
+          routeParams,
+          setRouteParams,
+        }}
+      >
+        {props.children}
+      </RouteContext.Provider>
+    </RouterContext.Provider>
   );
 };
 

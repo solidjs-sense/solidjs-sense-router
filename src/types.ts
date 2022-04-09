@@ -25,11 +25,7 @@ export type UrlParams = {
   state?: any;
 };
 
-export interface RouteState {
-  route: Accessor<string | undefined>;
-  setRoute: (route: string | undefined) => void;
-  routeParams: Accessor<Record<string, string>>;
-  setRouteParams: (params: Record<string, string>) => void;
+export interface RouterState {
   pending: Accessor<boolean>;
   setPending: (pending: boolean) => void;
   url: Accessor<URL>;
@@ -38,6 +34,13 @@ export interface RouteState {
   setBase: (base: string) => void;
   state: Accessor<any>;
   setState: (state: any) => void;
+}
+
+export interface RouteState {
+  route: Accessor<string | undefined>;
+  setRoute: (route: string | undefined) => void;
+  routeParams: Accessor<Record<string, string>>;
+  setRouteParams: (params: Record<string, string>) => void;
 }
 
 export interface LinkProps extends JSX.AnchorHTMLAttributes<HTMLAnchorElement> {

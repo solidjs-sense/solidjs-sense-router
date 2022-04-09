@@ -1,10 +1,18 @@
 import { batch, createContext, createEffect, createSignal, useContext, createMemo } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { api } from './api';
-import { LazyComponent, RouteDefinition, RouterComponent, RouteState, UrlParams } from './types';
+import { LazyComponent, RouteDefinition, RouterComponent, RouterState, RouteState, UrlParams } from './types';
 import { baseRegex, flatRoutes, formatURL, joinBase, matchRoute, trimBase } from './util';
 
+export const RouterContext = createContext<RouterState>();
+
 export const RouteContext = createContext<RouteState>();
+
+export const useRouterState = () => {
+  const state = useContext(RouterContext);
+  console.assert(!!state, 'Router Hook function must be used within a <Router> component');
+  return state!;
+};
 
 export const useRouteState = () => {
   const state = useContext(RouteContext);
@@ -28,7 +36,7 @@ export const useMatch = (path: string | (() => string)) => {
 
 export const useQueryParams = () => {
   return createMemo(() => {
-    const state = useRouteState();
+    const state = useRouterState();
     const url = state.url();
     const params: Record<string, string> = {};
     url.searchParams.forEach((v, k) => {
@@ -39,11 +47,11 @@ export const useQueryParams = () => {
 };
 
 export const useLoading = () => {
-  return useRouteState().pending;
+  return useRouterState().pending;
 };
 
 export const useLocation = () => {
-  const state = useRouteState();
+  const state = useRouterState();
   return {
     // does not include base
     url: state.url,
@@ -56,7 +64,7 @@ export const useLocation = () => {
   };
 };
 
-const navigate = (routeState: RouteState, location: ReturnType<typeof useLocation>, params: UrlParams) => {
+const navigate = (routerState: RouterState, location: ReturnType<typeof useLocation>, params: UrlParams) => {
   const { url, base, state } = location;
 
   const newURL = formatURL(params, url());
@@ -64,8 +72,8 @@ const navigate = (routeState: RouteState, location: ReturnType<typeof useLocatio
   newURL.pathname = trimBase(base(), newURL);
 
   batch(() => {
-    routeState.setUrl(newURL);
-    routeState.setState(params.state);
+    routerState.setUrl(newURL);
+    routerState.setState(params.state);
   });
 
   const displayUrl = joinBase(base(), new URL(newURL));
@@ -81,7 +89,12 @@ const navigate = (routeState: RouteState, location: ReturnType<typeof useLocatio
     : api.replaceState(displayUrl, backSession, params.state);
 };
 
-const newBase = (routeState: RouteState, location: ReturnType<typeof useLocation>, base: string, replace?: boolean) => {
+const newBase = (
+  routerState: RouterState,
+  location: ReturnType<typeof useLocation>,
+  base: string,
+  replace?: boolean,
+) => {
   const oldBase = location.base();
 
   if (base === oldBase) {
@@ -95,9 +108,9 @@ const newBase = (routeState: RouteState, location: ReturnType<typeof useLocation
   }
 
   batch(() => {
-    routeState.setUrl(url);
-    routeState.setBase(base);
-    routeState.setState(undefined);
+    routerState.setUrl(url);
+    routerState.setBase(base);
+    routerState.setState(undefined);
   });
 
   const displayUrl = joinBase(base, url);
@@ -112,20 +125,21 @@ const newBase = (routeState: RouteState, location: ReturnType<typeof useLocation
 
 export const useNavigator = () => {
   const location = useLocation();
-  const routeState = useRouteState();
+  const routerState = useRouterState();
 
   return {
     navigate: (params: UrlParams) => {
-      navigate(routeState, location, params);
+      navigate(routerState, location, params);
     },
     newBase: (base: string, replace?: boolean) => {
-      newBase(routeState, location, base, replace);
+      newBase(routerState, location, base, replace);
     },
   };
 };
 
 export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
   return () => {
+    const routerState = useRouterState();
     const routeState = useRouteState();
     const [router, setRouter] = createSignal<RouterComponent | undefined>();
     const location = useLocation();
@@ -141,21 +155,20 @@ export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
       });
 
       if ((route?.component as LazyComponent)?.preload) {
-        const routeState = useRouteState();
-        routeState.setPending(true);
+        routerState.setPending(true);
         (route?.component as LazyComponent)
           ?.preload()
           .catch(() => {
             // noop
           })
           .finally(() => {
-            routeState.setPending(false);
+            routerState.setPending(false);
           });
       }
 
       batch(() => {
-        routeState.setRouteParams(routeParams);
         routeState.setRoute(route?.path);
+        routeState.setRouteParams(routeParams);
         setRouter(() => route?.component);
       });
     });
