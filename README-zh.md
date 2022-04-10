@@ -71,6 +71,7 @@ render(() => <App />, document.getElementById('root') as HTMLElement);
         - `state`: 当前的 url 的 state (默认值: `undefined`)
         - `queryParams?`: `Record<string, string>` 当前地址的查询参数
         - `activeClass?`: 当前路由和 `href` 匹配，则添加 `activeClass` 类名到 `a` 标签上
+- `<Outlet />` 嵌套子路由
 
 Hooks:
 

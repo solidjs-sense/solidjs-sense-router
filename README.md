@@ -71,6 +71,7 @@ Components:
         - `state`: state object to push in history (default: `undefined`)
         - `queryParams?`: `Record<string, string>` query params
         - `activeClass?`: class name witch will be added to `a` tag when link's `href` is match by current route
+- `<Outlet />` nest child
 
 Hooks:
 

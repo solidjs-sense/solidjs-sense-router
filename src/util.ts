@@ -1,10 +1,19 @@
 import { Route, RouteDefinition, UrlParams } from './types';
 
+export const flatRouteChildren = (routes: RouteDefinition[], parentPath?: string): Route[] => {
+  return routes.map((route) => {
+    return {
+      ...route,
+      path: `${parentPath || ''}${route.path}`,
+    };
+  });
+};
+
 export const flatRoutes = (routes: RouteDefinition[], parentPath?: string): Route[] => {
   return routes.reduce<Route[]>((acc, cur) => {
     const { path, component, children } = cur;
     const route: Route = {
-      path: `${parentPath ? parentPath + '/' : ''}${path}`,
+      path: `${parentPath || ''}${path}`,
       component,
     };
     acc.push(route);
@@ -44,26 +53,46 @@ export const trimBase = (base: string, url: URL) => {
   return url.pathname;
 };
 
-// /routeName/:param/*all
-// /routeName/:param?
-export const matchRoute = (pathname: string, route: string): { match: boolean; params: Record<string, string> } => {
+export const matchRoute = (pathname: string, route: string) => {
+  const params: Record<string, string> = {};
   const routeParts = route.split('/');
   const pathParts = pathname.split('/');
-  const params: Record<string, string> = {};
 
-  for (let i = 0; i < routeParts.length; i++) {
+  let i = 0;
+  for (; i < routeParts.length; i++) {
     const routePart = routeParts[i];
     if (routePart[0] === ':' && (pathParts[i] || routePart[routePart.length - 1] === '?')) {
       params[routePart.replace(/^:|\?$/g, '')] = pathParts[i];
     } else if (routePart[0] === '*') {
       params[routePart.slice(1)] = pathParts.slice(i).join('/');
       break;
+      return {
+        match: true,
+        params,
+      };
     } else if (routePart !== pathParts[i]) {
       return { match: false, params: {} };
     }
   }
+
+  const m = routeParts.length === pathParts.length;
+
   return {
-    match: true,
-    params,
+    match: m,
+    params: m ? params : {},
   };
+};
+
+export const matchRoutes = (pathname: string, route: RouteDefinition): boolean => {
+  const routes = flatRoutes(([] as RouteDefinition[]).concat(route));
+
+  for (let i = 0; i < routes.length; i++) {
+    const route = routes[i];
+    const { match } = matchRoute(pathname, route.path);
+    if (match) {
+      return true;
+    }
+  }
+
+  return false;
 };
