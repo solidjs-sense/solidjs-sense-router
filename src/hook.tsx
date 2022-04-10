@@ -10,13 +10,13 @@ export const RouteContext = createContext<RouteState>();
 
 export const useRouterState = () => {
   const state = useContext(RouterContext);
-  console.assert(!!state, 'Router Hook function must be used within a <Router> component');
+  console.assert(!!state, 'Router Hook function or Component must be used within a <Router> component');
   return state!;
 };
 
 export const useRouteState = () => {
   const state = useContext(RouteContext);
-  console.assert(!!state, 'Router Hook function must be used within a <Router> component');
+  console.assert(!!state, 'Router Hook function or Component must be used within a <Router> component');
   return state!;
 };
 

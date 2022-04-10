@@ -89,7 +89,6 @@ export const Router = (props: { url?: string; defaultBase?: string; children: JS
 
 export const Outlet = () => {
   const state = useRouteState();
-  console.assert(!!state, '<Outlet /> must be used within a <Router> component');
   const comp = createMemo(() => {
     const route = state!.route();
     if (route?.children) {
