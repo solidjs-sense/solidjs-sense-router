@@ -1,9 +1,29 @@
-import { batch, createMemo, createSignal, JSX, onCleanup } from 'solid-js';
-import { RouteContext, RouterContext, useMatch, useNavigator } from './hook';
+import { batch, createMemo, createSignal, JSX, onCleanup, useContext } from 'solid-js';
+import { RouteContext, RouterContext, useMatch, useNavigator, useRoutes, useRouteState, useLocation } from './hook';
 import { api } from './api';
-import { baseRegex, joinBase, trimBase } from './util';
-import { useLocation } from './hook';
-import { LinkProps } from './types';
+import { baseRegex, flatRouteChildren, joinBase, trimBase } from './util';
+import { LinkProps, RouteDefinition, RouteState } from './types';
+import { Dynamic } from 'solid-js/web';
+
+const WrapRoutes = (props: { children: JSX.Element }) => {
+  const parentContext = useContext(RouteContext);
+  const [childContext, setChildContext] = createSignal<RouteState | undefined>();
+  const [route, setRoute] = createSignal<RouteDefinition | undefined>();
+  const context = {
+    parentContext,
+    route,
+    setRoute,
+    childContext,
+    setChildContext,
+  };
+
+  parentContext?.setChildContext(context);
+  onCleanup(() => {
+    parentContext?.setChildContext(undefined);
+  });
+
+  return <RouteContext.Provider value={context}>{props.children}</RouteContext.Provider>;
+};
 
 export const Router = (props: { url?: string; defaultBase?: string; children: JSX.Element }) => {
   console.assert(
@@ -11,8 +31,6 @@ export const Router = (props: { url?: string; defaultBase?: string; children: JS
     'Router must be initialized with a url in server mode',
   );
 
-  const [route, setRoute] = createSignal<string | undefined>();
-  const [routeParams, setRouteParams] = createSignal<Record<string, string>>({});
   const [pending, setPending] = createSignal(false);
   const [base, setBase] = createSignal(props.defaultBase ?? '');
   const [state, setState] = createSignal<any>(api.state);
@@ -64,17 +82,25 @@ export const Router = (props: { url?: string; defaultBase?: string; children: JS
         setState,
       }}
     >
-      <RouteContext.Provider
-        value={{
-          route,
-          setRoute,
-          routeParams,
-          setRouteParams,
-        }}
-      >
-        {props.children}
-      </RouteContext.Provider>
+      <WrapRoutes>{props.children}</WrapRoutes>
     </RouterContext.Provider>
+  );
+};
+
+export const Outlet = () => {
+  const state = useRouteState();
+  console.assert(!!state, '<Outlet /> must be used within a <Router> component');
+  const comp = createMemo(() => {
+    const route = state!.route();
+    if (route?.children) {
+      return useRoutes(flatRouteChildren(route.children, route.path));
+    }
+    return undefined;
+  });
+  return (
+    <WrapRoutes>
+      <Dynamic component={comp()} />
+    </WrapRoutes>
   );
 };
 

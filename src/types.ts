@@ -37,10 +37,11 @@ export interface RouterState {
 }
 
 export interface RouteState {
-  route: Accessor<string | undefined>;
-  setRoute: (route: string | undefined) => void;
-  routeParams: Accessor<Record<string, string>>;
-  setRouteParams: (params: Record<string, string>) => void;
+  route: Accessor<RouteDefinition | undefined>;
+  setRoute: (route: RouteDefinition | undefined) => void;
+  parentContext?: RouteState;
+  childContext: Accessor<RouteState | undefined>;
+  setChildContext: (state: RouteState | undefined) => void;
 }
 
 export interface LinkProps extends JSX.AnchorHTMLAttributes<HTMLAnchorElement> {

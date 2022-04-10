@@ -2,7 +2,7 @@ import { batch, createContext, createEffect, createSignal, useContext, createMem
 import { Dynamic } from 'solid-js/web';
 import { api } from './api';
 import { LazyComponent, RouteDefinition, RouterComponent, RouterState, RouteState, UrlParams } from './types';
-import { baseRegex, flatRoutes, formatURL, joinBase, matchRoute, trimBase } from './util';
+import { baseRegex, formatURL, joinBase, matchRoute, matchRoutes, trimBase } from './util';
 
 export const RouterContext = createContext<RouterState>();
 
@@ -21,16 +21,38 @@ export const useRouteState = () => {
 };
 
 export const useRouteParams = () => {
-  return useRouteState().routeParams;
+  const route = useRouteState().route();
+  if (!route) {
+    return {};
+  }
+
+  const { url } = useLocation();
+  const { match, params } = matchRoute(url().pathname, route.path);
+
+  if (match) {
+    return params;
+  }
+
+  return {};
 };
 
 export const useMatch = (path: string | (() => string)) => {
   return createMemo(() => {
-    const route = useRouteState().route();
-    if (!route) {
-      return false;
+    let currentState: RouteState | undefined = useRouteState();
+    while (currentState.parentContext) {
+      currentState = currentState.parentContext;
     }
-    return matchRoute(typeof path === 'function' ? path() : path, route).match;
+    while (currentState) {
+      const route = currentState.route();
+      if (!route) {
+        return false;
+      }
+      if (matchRoute(typeof path === 'function' ? path() : path, route.path).match) {
+        return true;
+      }
+      currentState = currentState.childContext();
+    }
+    return false;
   });
 };
 
@@ -143,15 +165,12 @@ export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
     const routeState = useRouteState();
     const [router, setRouter] = createSignal<RouterComponent | undefined>();
     const location = useLocation();
-    const routes = flatRoutes(([] as RouteDefinition[]).concat(route));
+    const routes = ([] as RouteDefinition[]).concat(route);
 
     createEffect(() => {
       const url = location.url();
-      let routeParams: Record<string, string> = {};
-      const route = routes.find((route) => {
-        const { match, params } = matchRoute(url.pathname, route.path);
-        routeParams = params;
-        return match;
+      const route = routes.find((rut) => {
+        return matchRoutes(url.pathname, rut);
       });
 
       if ((route?.component as LazyComponent)?.preload) {
@@ -167,8 +186,7 @@ export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
       }
 
       batch(() => {
-        routeState.setRoute(route?.path);
-        routeState.setRouteParams(routeParams);
+        routeState.setRoute(route);
         setRouter(() => route?.component);
       });
     });
