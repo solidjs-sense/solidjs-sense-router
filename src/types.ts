@@ -1,4 +1,5 @@
 import { Accessor, Component, JSX } from 'solid-js';
+import { useLocation } from './hook';
 
 export type LazyComponent = Component<any> & {
   preload: () => Promise<{
@@ -11,6 +12,9 @@ export type RouterComponent = JSX.FunctionElement | LazyComponent;
 export interface Route {
   path: string;
   component?: RouterComponent;
+  canActivate?: (location: ReturnType<typeof useLocation>, route: RouteDefinition) => Promise<boolean> | boolean;
+  redirectTo?: string;
+  isLoaded?: boolean;
 }
 
 export type RouteDefinition = Route & {

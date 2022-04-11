@@ -1,4 +1,4 @@
-import { batch, createContext, createEffect, createSignal, useContext, createMemo } from 'solid-js';
+import { batch, createContext, createEffect, createSignal, useContext, createMemo, ErrorBoundary } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { api } from './api';
 import { LazyComponent, RouteDefinition, RouterComponent, RouterState, RouteState, UrlParams } from './types';
@@ -168,6 +168,7 @@ export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
     const [router, setRouter] = createSignal<RouterComponent | undefined>();
     const location = useLocation();
     const routes = ([] as RouteDefinition[]).concat(route);
+    let reset: undefined | (() => void);
 
     createEffect(() => {
       const url = location.url();
@@ -175,7 +176,7 @@ export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
         return matchRoutes(url.pathname, rut);
       });
 
-      if ((route?.component as LazyComponent)?.preload) {
+      if (route && !route.isLoaded && (route.component as LazyComponent)?.preload) {
         routerState.setPending(true);
         (route?.component as LazyComponent)
           ?.preload()
@@ -183,16 +184,29 @@ export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
             // noop
           })
           .finally(() => {
+            route.isLoaded = true;
             routerState.setPending(false);
           });
       }
 
+      reset?.();
+      reset = undefined;
       batch(() => {
         routeState.setRoute(route);
         setRouter(() => route?.component);
       });
     });
 
-    return <Dynamic component={router()} />;
+    const fallback = (err: Error, rst: () => void) => {
+      console.error(err);
+      reset = rst;
+      return <></>;
+    };
+
+    return (
+      <ErrorBoundary fallback={fallback}>
+        <Dynamic component={router()} />
+      </ErrorBoundary>
+    );
   };
 };
