@@ -21,19 +21,21 @@ export const useRouteState = () => {
 };
 
 export const useRouteParams = () => {
-  const route = useRouteState().route();
-  if (!route) {
+  return createMemo(() => {
+    const route = useRouteState().route();
+    if (!route) {
+      return {};
+    }
+
+    const { url } = useLocation();
+    const { match, params } = matchRoute(url().pathname, route.path);
+
+    if (match) {
+      return params;
+    }
+
     return {};
-  }
-
-  const { url } = useLocation();
-  const { match, params } = matchRoute(url().pathname, route.path);
-
-  if (match) {
-    return params;
-  }
-
-  return {};
+  });
 };
 
 export const useMatch = (path: string | (() => string)) => {
