@@ -152,8 +152,8 @@ export const useNavigator = () => {
   const routerState = useRouterState();
 
   function navFunc(params: UrlParams): void;
-  function navFunc(url: string, params?: UrlParams): void;
-  function navFunc(url: string | UrlParams, params?: UrlParams) {
+  function navFunc(url: string, params?: Omit<UrlParams, 'url'>): void;
+  function navFunc(url: string | UrlParams, params?: Omit<UrlParams, 'url'>) {
     const newParams = {
       ...(typeof url === 'string' ? { url } : url),
       ...(params || {}),
