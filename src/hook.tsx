@@ -95,11 +95,6 @@ const navigate = (routerState: RouterState, location: ReturnType<typeof useLocat
 
   newURL.pathname = trimBase(base(), newURL);
 
-  batch(() => {
-    routerState.setUrl(newURL);
-    routerState.setState(params.state);
-  });
-
   const displayUrl = joinBase(base(), new URL(newURL));
 
   const backSession = {
@@ -111,6 +106,11 @@ const navigate = (routerState: RouterState, location: ReturnType<typeof useLocat
   !params.replace
     ? api.pushState(displayUrl, backSession, params.state)
     : api.replaceState(displayUrl, backSession, params.state);
+
+  batch(() => {
+    routerState.setUrl(newURL);
+    routerState.setState(params.state);
+  });
 };
 
 const newBase = (
@@ -131,12 +131,6 @@ const newBase = (
     url.pathname = trimBase(base, url);
   }
 
-  batch(() => {
-    routerState.setUrl(url);
-    routerState.setBase(base);
-    routerState.setState(undefined);
-  });
-
   const displayUrl = joinBase(base, url);
   const backSession = {
     url: url.toString(),
@@ -145,6 +139,12 @@ const newBase = (
   };
 
   !replace ? api.pushState(displayUrl, backSession) : api.replaceState(displayUrl, backSession);
+
+  batch(() => {
+    routerState.setUrl(url);
+    routerState.setBase(base);
+    routerState.setState(undefined);
+  });
 };
 
 export const useNavigator = () => {
@@ -165,8 +165,9 @@ export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
   return () => {
     const routerState = useRouterState();
     const routeState = useRouteState();
-    const [router, setRouter] = createSignal<RouterComponent | undefined>();
     const location = useLocation();
+    const navigator = useNavigator();
+    const [router, setRouter] = createSignal<RouterComponent | undefined>();
     const routes = ([] as RouteDefinition[]).concat(route);
     let reset: undefined | (() => void);
 
@@ -176,25 +177,53 @@ export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
         return matchRoutes(url.pathname, rut);
       });
 
-      if (route && !route.isLoaded && (route.component as LazyComponent)?.preload) {
-        routerState.setPending(true);
-        (route?.component as LazyComponent)
-          ?.preload()
-          .catch(() => {
-            // noop
-          })
-          .finally(() => {
-            route.isLoaded = true;
-            routerState.setPending(false);
-          });
-      }
-
       reset?.();
       reset = undefined;
-      batch(() => {
-        routeState.setRoute(route);
-        setRouter(() => route?.component);
-      });
+
+      if (route?.redirectTo) {
+        return navigator.navigate({
+          url: route.redirectTo,
+          replace: true,
+        });
+      }
+
+      const resolve = (canLoad: boolean) => {
+        if (canLoad) {
+          if (route && !route.isLoaded && (route.component as LazyComponent)?.preload) {
+            routerState.setPending(true);
+            (route?.component as LazyComponent)
+              ?.preload()
+              .catch(() => {
+                // noop
+              })
+              .finally(() => {
+                route.isLoaded = true;
+                routerState.setPending(false);
+              });
+          }
+          batch(() => {
+            routeState.setRoute(route);
+            setRouter(() => route?.component);
+          });
+        } else {
+          batch(() => {
+            routeState.setRoute(undefined);
+            setRouter(undefined);
+          });
+        }
+      };
+
+      const canLoad = (route?.canLoad || (() => true))(location, route!);
+      if (canLoad instanceof Promise) {
+        canLoad
+          .catch((err) => {
+            console.error(err);
+            return false;
+          })
+          .then(resolve);
+      } else {
+        resolve(canLoad);
+      }
     });
 
     const fallback = (err: Error, rst: () => void) => {
