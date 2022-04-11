@@ -151,10 +151,18 @@ export const useNavigator = () => {
   const location = useLocation();
   const routerState = useRouterState();
 
+  function navFunc(params: UrlParams): void;
+  function navFunc(url: string, params?: UrlParams): void;
+  function navFunc(url: string | UrlParams, params?: UrlParams) {
+    const newParams = {
+      ...(typeof url === 'string' ? { url } : url),
+      ...(params || {}),
+    };
+    navigate(routerState, location, newParams);
+  }
+
   return {
-    navigate: (params: UrlParams) => {
-      navigate(routerState, location, params);
-    },
+    navigate: navFunc,
     newBase: (base: string, replace?: boolean) => {
       newBase(routerState, location, base, replace);
     },

@@ -12,9 +12,9 @@ Sample:
 
 ``` jsx
 import { render } from 'solid-js/web';
-import { useNavigator, useRouter } from "solidjs-sense-router";
+import { useNavigator, useRouter, RouteDefinition } from "solidjs-sense-router";
 
-const routes = [
+const routes: RouteDefinition[] = [
   {
     path: "/",
     component: lazy(() => import("./pages/home")),
@@ -22,6 +22,14 @@ const routes = [
   {
     path: "/news/:id?",
     component: lazy(() => import("./pages/news")),
+    canLoad: () => {
+       ...
+       return true;
+    }
+  },
+  {
+    path: "/product",
+    redirectTo: '/good'
   },
   {
     path: "/good",
