@@ -11,13 +11,13 @@
     "SSR",
     "ssr"
   ],
-  "homepage": "https://github.com/solid-sense/solidjs-sense-router",
+  "homepage": "https://github.com/solidjs-sense/solidjs-sense-router",
   "bugs": {
-    "url": "https://github.com/solid-sense/solidjs-sense-router/issues"
+    "url": "https://github.com/solidjs-sense/solidjs-sense-router/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/solid-sense/solidjs-sense-router.git"
+    "url": "git+https://github.com/solidjs-sense/solidjs-sense-router.git"
   },
   "author": "iamcco (https://github.com/iamcco)",
   "contributors": [
