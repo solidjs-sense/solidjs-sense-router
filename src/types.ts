@@ -14,11 +14,14 @@ export interface Route {
   component?: RouterComponent;
   canLoad?: (location: ReturnType<typeof useLocation>, route: RouteDefinition) => Promise<boolean> | boolean;
   redirectTo?: string;
-  isLoaded?: boolean;
 }
 
 export type RouteDefinition = Route & {
   children?: RouteDefinition[];
+};
+
+export type RouteConfig = RouteDefinition & {
+  isLoaded?: boolean;
 };
 
 export type UrlParams = {
@@ -41,8 +44,8 @@ export interface RouterState {
 }
 
 export interface RouteState {
-  route: Accessor<RouteDefinition | undefined>;
-  setRoute: (route: RouteDefinition | undefined) => void;
+  routeConfig: Accessor<RouteConfig | undefined>;
+  setRouteConfig: (route: RouteConfig | undefined) => void;
   parentContext?: RouteState;
   childContext: Accessor<RouteState | undefined>;
   setChildContext: (state: RouteState | undefined) => void;

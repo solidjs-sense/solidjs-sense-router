@@ -2,17 +2,17 @@ import { batch, createMemo, createSignal, JSX, onCleanup, useContext } from 'sol
 import { RouteContext, RouterContext, useMatch, useNavigator, useRoutes, useRouteState, useLocation } from './hook';
 import { api } from './api';
 import { baseRegex, flatRouteChildren, joinBase, trimBase } from './util';
-import { LinkProps, RouteDefinition, RouteState } from './types';
+import { LinkProps, RouteConfig, RouteState } from './types';
 import { Dynamic } from 'solid-js/web';
 
 const WrapRoutes = (props: { children: JSX.Element }) => {
   const parentContext = useContext(RouteContext);
   const [childContext, setChildContext] = createSignal<RouteState | undefined>();
-  const [route, setRoute] = createSignal<RouteDefinition | undefined>();
+  const [routeConfig, setRouteConfig] = createSignal<RouteConfig | undefined>();
   const context = {
     parentContext,
-    route,
-    setRoute,
+    routeConfig,
+    setRouteConfig,
     childContext,
     setChildContext,
   };
@@ -90,9 +90,9 @@ export const Router = (props: { url?: string; defaultBase?: string; children: JS
 export const Outlet = () => {
   const state = useRouteState();
   const comp = createMemo(() => {
-    const route = state!.route();
-    if (route?.children) {
-      return useRoutes(flatRouteChildren(route.children, route.path));
+    const routeConfig = state!.routeConfig();
+    if (routeConfig?.children) {
+      return useRoutes(flatRouteChildren(routeConfig.children, routeConfig.path));
     }
     return undefined;
   });
