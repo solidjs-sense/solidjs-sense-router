@@ -1,5 +1,5 @@
 import MarkdownIt from 'markdown-it';
-import { useLocation } from '../../..';
+import { useLocation } from '../../../src';
 import readme from '../../../README.md?raw';
 import readmeZh from '../../../README-zh.md?raw';
 import './usage.scss';

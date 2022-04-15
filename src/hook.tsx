@@ -1,15 +1,16 @@
-import { batch, createContext, createEffect, createSignal, useContext, createMemo, ErrorBoundary } from 'solid-js';
+import {
+  batch,
+  createContext,
+  createEffect,
+  createSignal,
+  useContext,
+  createMemo,
+  ErrorBoundary,
+  Accessor,
+} from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { api } from './api';
-import {
-  LazyComponent,
-  RouteConfig,
-  RouteDefinition,
-  RouterComponent,
-  RouterState,
-  RouteState,
-  UrlParams,
-} from './types';
+import { LazyComponent, RouteDefinition, RouterComponent, RouterState, RouteState, UrlParams } from './types';
 import { baseRegex, formatURL, joinBase, matchRoute, matchRoutes, trimBase } from './util';
 
 export const RouterContext = createContext<RouterState>();
@@ -30,13 +31,13 @@ export const useRouteState = () => {
 
 export const useRouteParams = () => {
   return createMemo(() => {
-    const routeConfig = useRouteState().routeConfig();
-    if (!routeConfig) {
+    const route = useRouteState().route();
+    if (!route) {
       return {};
     }
 
     const { url } = useLocation();
-    const { match, params } = matchRoute(url().pathname, routeConfig.path);
+    const { match, params } = matchRoute(url().pathname, route.path);
 
     if (match) {
       return params;
@@ -46,23 +47,36 @@ export const useRouteParams = () => {
   });
 };
 
-export const useMatch = (path: string | (() => string)) => {
+export const useMatch = (path: string | (() => string)): Accessor<RouteDefinition | undefined> => {
+  return createMemo(() => {
+    const routes = useRouterState().routes();
+    for (let i = 0; i < routes.length; i++) {
+      const route = routes[i];
+      const match = matchRoutes(typeof path === 'function' ? path() : path, route);
+      if (match) {
+        return match;
+      }
+    }
+  });
+};
+
+export const useCurrentMatch = (path: string | (() => string)): Accessor<RouteDefinition | undefined> => {
   return createMemo(() => {
     let currentState: RouteState | undefined = useRouteState();
     while (currentState.parentContext) {
       currentState = currentState.parentContext;
     }
     while (currentState) {
-      const routeConfig = currentState.routeConfig();
-      if (!routeConfig) {
-        return false;
+      const route = currentState.route();
+      if (!route) {
+        return;
       }
-      if (matchRoute(typeof path === 'function' ? path() : path, routeConfig.path).match) {
-        return true;
+      if (matchRoute(typeof path === 'function' ? path() : path, route.path).match) {
+        return route;
       }
       currentState = currentState.childContext();
     }
-    return false;
+    return;
   });
 };
 
@@ -177,58 +191,59 @@ export const useNavigator = () => {
   };
 };
 
-const useRouteConfigs = (configs: RouteConfig[]) => {
+export const getRoutes = (routes: RouteDefinition[]) => {
   return () => {
     const routerState = useRouterState();
     const routeState = useRouteState();
     const location = useLocation();
     const navigator = useNavigator();
     const [router, setRouter] = createSignal<RouterComponent | undefined>();
+    const loaded: Record<string, boolean> = {};
     let reset: undefined | (() => void);
 
     createEffect(() => {
       const url = location.url();
-      const routeConfig = configs.find((rut) => {
-        return matchRoutes(url.pathname, rut);
+      const route = routes.find((rut) => {
+        return matchRoutes(url.pathname, rut) !== undefined;
       });
 
       reset?.();
       reset = undefined;
 
-      if (routeConfig?.redirectTo) {
+      if (route?.redirectTo) {
         return navigator.navigate({
-          url: routeConfig.redirectTo,
+          url: route.redirectTo,
           replace: true,
         });
       }
 
       const resolve = (canLoad: boolean) => {
         if (canLoad) {
-          if (routeConfig && !routeConfig.isLoaded && (routeConfig.component as LazyComponent)?.preload) {
+          if (route && !loaded[route.path] && (route.component as LazyComponent)?.preload) {
             routerState.setPending(true);
-            (routeConfig?.component as LazyComponent)
+            (route?.component as LazyComponent)
               ?.preload()
               .catch(() => {
                 // noop
               })
               .finally(() => {
-                routeConfig.isLoaded = true;
+                loaded[route.path] = true;
                 routerState.setPending(false);
               });
           }
           batch(() => {
-            routeState.setRouteConfig(routeConfig);
-            setRouter(() => routeConfig?.component);
+            routeState.setRoute(route);
+            setRouter(() => route?.component);
           });
         } else {
           batch(() => {
-            routeState.setRouteConfig(undefined);
+            routeState.setRoute(undefined);
             setRouter(undefined);
           });
         }
       };
 
-      const canLoad = (routeConfig?.canLoad || (() => true))(location, routeConfig!);
+      const canLoad = (route?.canLoad || (() => true))(location, route!);
       if (canLoad instanceof Promise) {
         canLoad
           .catch((err) => {
@@ -256,11 +271,8 @@ const useRouteConfigs = (configs: RouteConfig[]) => {
 };
 
 export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
-  const configs = ([] as RouteDefinition[]).concat(route).map((r) => {
-    return {
-      ...r,
-      isLoaded: false,
-    };
-  });
-  return useRouteConfigs(configs);
+  const routes = ([] as RouteDefinition[]).concat(route);
+  const routerState = useRouterState();
+  routerState.setRoutes(routes);
+  return getRoutes(routes);
 };

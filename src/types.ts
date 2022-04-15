@@ -20,10 +20,6 @@ export type RouteDefinition = Route & {
   children?: RouteDefinition[];
 };
 
-export type RouteConfig = RouteDefinition & {
-  isLoaded?: boolean;
-};
-
 export type UrlParams = {
   url: URL | string;
   queryParams?: Record<string, string | number>;
@@ -33,6 +29,8 @@ export type UrlParams = {
 };
 
 export interface RouterState {
+  routes: Accessor<RouteDefinition[]>;
+  setRoutes: (routes: RouteDefinition[]) => void;
   pending: Accessor<boolean>;
   setPending: (pending: boolean) => void;
   url: Accessor<URL>;
@@ -44,8 +42,8 @@ export interface RouterState {
 }
 
 export interface RouteState {
-  routeConfig: Accessor<RouteConfig | undefined>;
-  setRouteConfig: (route: RouteConfig | undefined) => void;
+  route: Accessor<RouteDefinition | undefined>;
+  setRoute: (route: RouteDefinition | undefined) => void;
   parentContext?: RouteState;
   childContext: Accessor<RouteState | undefined>;
   setChildContext: (state: RouteState | undefined) => void;
@@ -56,6 +54,19 @@ export interface LinkProps extends JSX.AnchorHTMLAttributes<HTMLAnchorElement> {
   replace?: boolean;
   queryParams?: Record<string, string>;
   activeClass?: string;
+  /**
+   * default: `visible`
+   *
+   * `immediate`: prefetch the route immediately
+   *
+   * `visible`: prefetch the route when the element is visible
+   *
+   * `hover`: prefetch the route when the element is hovered
+   *
+   * @type {('immediate' | 'visible' | 'hover')}
+   * @memberof LinkProps
+   */
+  prefetch?: 'immediate' | 'visible' | 'hover' | 'none';
 }
 
 export interface Session {

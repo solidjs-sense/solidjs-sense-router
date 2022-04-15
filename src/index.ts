@@ -1,4 +1,15 @@
 export type { RouteDefinition, UrlParams } from './types';
-export { Router, Link, Outlet } from './router';
-export { useRoutes, useLoading, useLocation, useNavigator, useQueryParams, useRouteParams, useMatch } from './hook';
+export { Router } from './components/router';
+export { Outlet } from './components/outlet';
+export { Link } from './components/link';
+export {
+  useRoutes,
+  useLoading,
+  useLocation,
+  useNavigator,
+  useQueryParams,
+  useRouteParams,
+  useCurrentMatch,
+  useMatch,
+} from './hook';
 export { matchRoute } from './util';

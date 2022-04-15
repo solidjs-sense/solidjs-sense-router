@@ -1,6 +1,6 @@
 import { Route, RouteDefinition, UrlParams } from './types';
 
-export const flatRouteChildren = (routes: RouteDefinition[], parentPath?: string): Route[] => {
+export const flatRouteChildren = (routes: RouteDefinition[], parentPath?: string): RouteDefinition[] => {
   return routes.map((route) => {
     return {
       ...route,
@@ -9,12 +9,12 @@ export const flatRouteChildren = (routes: RouteDefinition[], parentPath?: string
   });
 };
 
-export const flatRoutes = (routes: RouteDefinition[], parentPath?: string): Route[] => {
+export const flatRoutes = (routes: RouteDefinition[], parentPath?: string): RouteDefinition[] => {
   return routes.reduce<Route[]>((acc, cur) => {
-    const { path, component, children } = cur;
-    const route: Route = {
+    const { path, children } = cur;
+    const route: RouteDefinition = {
+      ...cur,
       path: `${parentPath || ''}${path}`,
-      component,
     };
     acc.push(route);
     return children ? acc.concat(flatRoutes(children, route.path)) : acc;
@@ -65,7 +65,6 @@ export const matchRoute = (pathname: string, route: string) => {
       params[routePart.replace(/^:|\?$/g, '')] = pathParts[i];
     } else if (routePart[0] === '*') {
       params[routePart.slice(1)] = pathParts.slice(i).join('/');
-      break;
       return {
         match: true,
         params,
@@ -83,16 +82,16 @@ export const matchRoute = (pathname: string, route: string) => {
   };
 };
 
-export const matchRoutes = (pathname: string, route: RouteDefinition): boolean => {
+export const matchRoutes = (pathname: string, route: RouteDefinition): RouteDefinition | undefined => {
   const routes = flatRoutes(([] as RouteDefinition[]).concat(route));
 
   for (let i = 0; i < routes.length; i++) {
     const route = routes[i];
     const { match } = matchRoute(pathname, route.path);
     if (match) {
-      return true;
+      return route;
     }
   }
 
-  return false;
+  return;
 };

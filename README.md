@@ -79,6 +79,11 @@ Components:
         - `state`: state object to push in history (default: `undefined`)
         - `queryParams?`: `Record<string, string>` query params
         - `activeClass?`: class name witch will be added to `a` tag when link's `href` is match by current route
+        - `prefetch?`: 'immediate' | 'visible' | 'hover' | 'none'
+          - `immediate`: prefetch when link is rendered
+          - `visible`: prefetch when link is visible
+          - `hover`: prefetch when mouse is over link
+          - `none`: don't prefetch
 - `<Outlet />` nest child
 
 Hooks:
@@ -102,8 +107,11 @@ Hooks:
 - `useRouteParams()`
   > return route params
 
-- `useMatch(path: string): boolean`
-  > return true if current route's path is match by `path`
+- `useCurrentMatch(path: string): Accessor<RouteDefinition | undefined>`
+  > return current route match by `path`
+
+- `useMatch(path: string): Accessor<RouteDefinition | undefined>`
+  > return route match by `path`
 
 Utils:
 

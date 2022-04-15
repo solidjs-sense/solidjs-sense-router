@@ -1,5 +1,5 @@
 import { Component, lazy } from 'solid-js';
-import { useLoading, useRoutes, Router } from '../..';
+import { useLoading, useRoutes, Router } from '../../src';
 import './App.scss';
 import { Nav } from './components/nav';
 import { bases } from './constant';

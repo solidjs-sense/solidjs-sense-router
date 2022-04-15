@@ -23,6 +23,13 @@ class Api {
     return history.state;
   }
 
+  get IntersectionObserver() {
+    if (!this.isClient) {
+      return;
+    }
+    return window.IntersectionObserver;
+  }
+
   constructor() {
     if (!this.isClient) {
       return;

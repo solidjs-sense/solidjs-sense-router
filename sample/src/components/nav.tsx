@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigator } from '../../..';
+import { Link, useLocation, useNavigator } from '../../../src';
 import { bases } from '../constant';
 import { t } from '../util';
 import './nav.scss';

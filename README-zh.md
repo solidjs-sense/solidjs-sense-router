@@ -71,6 +71,11 @@ render(() => <App />, document.getElementById('root') as HTMLElement);
         - `state`: 当前的 url 的 state (默认值: `undefined`)
         - `queryParams?`: `Record<string, string>` 当前地址的查询参数
         - `activeClass?`: 当前路由和 `href` 匹配，则添加 `activeClass` 类名到 `a` 标签上
+        - `prefetch?`: 'immediate' | 'visible' | 'hover' | 'none'
+          - `immediate`: 当 `Link` 渲染后立即开始预加载
+          - `visible`: 当 `Link` 在可视区域内时开始预加载
+          - `hover`: 当 `Link` 鼠标悬停时开始预加载
+          - `none`: 不预加载
 - `<Outlet />` 嵌套子路由
 
 Hooks:
@@ -94,8 +99,11 @@ Hooks:
 - `useRouteParams()`
   > 返回当前的路由参数
 
-- `useMatch(path: string): boolean`
-  > 如果 `path` 匹配当前路由，则返回 `true`
+- `useCurrentMatch(path: string): Accessor<RouteDefinition | undefined>`
+  > 返回当前的匹配的路由
+
+- `useMatch(path: string): Accessor<RouteDefinition | undefined>`
+  > 返回匹配的路由
 
 工具函数:
 

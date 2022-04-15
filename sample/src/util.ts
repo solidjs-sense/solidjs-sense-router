@@ -1,4 +1,4 @@
-import { useLocation } from '../..';
+import { useLocation } from '../../src';
 import { bases } from './constant';
 import en from './locale/en';
 import zh from './locale/zh';
