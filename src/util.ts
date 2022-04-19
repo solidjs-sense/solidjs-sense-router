@@ -1,5 +1,9 @@
 import { Route, RouteDefinition, UrlParams } from './types';
 
+export const noop = () => {
+  // noop
+};
+
 export const flatRouteChildren = (routes: RouteDefinition[], parentPath?: string): RouteDefinition[] => {
   return routes.map((route) => {
     return {

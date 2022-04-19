@@ -16,7 +16,7 @@ export const Link = (props: LinkProps) => {
   const classList = createMemo(() => {
     return linkProps.activeClass
       ? {
-          [linkProps.activeClass]: !!useCurrentMatch(url().pathname)(),
+          [linkProps.activeClass]: !!useCurrentMatch(url().pathname),
           ...(aProps.classList || {}),
         }
       : { ...(aProps.classList || {}) };
@@ -97,7 +97,7 @@ export const Link = (props: LinkProps) => {
       removeObserver();
     }
 
-    const match = useMatch(url().pathname)();
+    const match = useMatch(url().pathname);
 
     const comp = match?.component as LazyComponent | undefined;
     if (!comp?.preload) {

@@ -1,6 +1,6 @@
 # solidjs-sense-router
 
-一个浑然天成的路由器
+一个简单合理的路由器
 
 ## 安装
 
@@ -12,16 +12,16 @@
 
 ``` jsx
 import { render } from 'solid-js/web';
-import { useNavigator, useRouter } from "solidjs-sense-router";
+import { useNavigator, useRouter, RouteDefinition } from "solidjs-sense-router";
 
-const routes = [
+const routes: RouteDefinition[] = [
   {
     path: "/",
     component: lazy(() => import("./pages/home")),
   },
   {
-    path: "/news/:id?",
-    component: lazy(() => import("./pages/news")),
+    path: "/product",
+    redirectTo: '/good'
   },
   {
     path: "/good",
@@ -36,6 +36,15 @@ const routes = [
         component: lazy(() => import("./pages/good/fruit")),
       },
     ],
+    prefetch: true;
+    canLoad: () => {
+       ...
+       return true;
+    }
+  },
+  {
+    path: "/news/:id?",
+    component: lazy(() => import("./pages/news")),
   },
   {
     path: "/*all",
@@ -99,11 +108,13 @@ Hooks:
 - `useRouteParams()`
   > 返回当前的路由参数
 
-- `useCurrentMatch(path: string): Accessor<RouteDefinition | undefined>`
+- `useCurrentMatch(path: string): RouteDefinition | undefined`
   > 返回当前的匹配的路由
 
-- `useMatch(path: string): Accessor<RouteDefinition | undefined>`
+- `useMatch(path: string): RouteDefinition | undefined`
   > 返回匹配的路由
+
+- `usePrefetch(path: string | string[]): 预加载匹配 path 的路由`
 
 工具函数:
 

@@ -1,17 +1,10 @@
-import {
-  batch,
-  createContext,
-  createEffect,
-  createSignal,
-  useContext,
-  createMemo,
-  ErrorBoundary,
-  Accessor,
-} from 'solid-js';
+import { batch, createContext, createEffect, createSignal, useContext, createMemo, ErrorBoundary } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { api } from './api';
 import { LazyComponent, RouteDefinition, RouterComponent, RouterState, RouteState, UrlParams } from './types';
-import { baseRegex, formatURL, joinBase, matchRoute, matchRoutes, trimBase } from './util';
+import { baseRegex, flatRoutes, formatURL, joinBase, matchRoute, matchRoutes, noop, trimBase } from './util';
+
+const prefetchRoutes: Record<string, boolean> = {};
 
 export const RouterContext = createContext<RouterState>();
 
@@ -47,37 +40,51 @@ export const useRouteParams = () => {
   });
 };
 
-export const useMatch = (path: string | (() => string)): Accessor<RouteDefinition | undefined> => {
-  return createMemo(() => {
-    const routes = useRouterState().routes();
-    for (let i = 0; i < routes.length; i++) {
-      const route = routes[i];
-      const match = matchRoutes(typeof path === 'function' ? path() : path, route);
-      if (match) {
-        return match;
+export const usePrefetch = (path: string | string[]) => {
+  const paths = ([] as string[]).concat(path);
+  paths.forEach((path) => {
+    const route = useMatch(path);
+    if (route && !prefetchRoutes[route.path]) {
+      const comp = route.component as LazyComponent | undefined;
+      if (comp?.preload) {
+        comp
+          .preload()
+          .catch(noop)
+          .finally(() => {
+            prefetchRoutes[route.path] = true;
+          });
       }
     }
   });
 };
 
-export const useCurrentMatch = (path: string | (() => string)): Accessor<RouteDefinition | undefined> => {
-  return createMemo(() => {
-    let currentState: RouteState | undefined = useRouteState();
-    while (currentState.parentContext) {
-      currentState = currentState.parentContext;
+export const useMatch = (path: string | (() => string)): RouteDefinition | undefined => {
+  const routes = useRouterState().routes();
+  for (let i = 0; i < routes.length; i++) {
+    const route = routes[i];
+    const match = matchRoutes(typeof path === 'function' ? path() : path, route);
+    if (match) {
+      return match;
     }
-    while (currentState) {
-      const route = currentState.route();
-      if (!route) {
-        return;
-      }
-      if (matchRoute(typeof path === 'function' ? path() : path, route.path).match) {
-        return route;
-      }
-      currentState = currentState.childContext();
+  }
+};
+
+export const useCurrentMatch = (path: string | (() => string)): RouteDefinition | undefined => {
+  let currentState: RouteState | undefined = useRouteState();
+  while (currentState.parentContext) {
+    currentState = currentState.parentContext;
+  }
+  while (currentState) {
+    const route = currentState.route();
+    if (!route) {
+      return;
     }
-    return;
-  });
+    if (matchRoute(typeof path === 'function' ? path() : path, route.path).match) {
+      return route;
+    }
+    currentState = currentState.childContext();
+  }
+  return;
 };
 
 export const useQueryParams = () => {
@@ -198,7 +205,6 @@ export const getRoutes = (routes: RouteDefinition[]) => {
     const location = useLocation();
     const navigator = useNavigator();
     const [router, setRouter] = createSignal<RouterComponent | undefined>();
-    const loaded: Record<string, boolean> = {};
     let reset: undefined | (() => void);
 
     createEffect(() => {
@@ -219,15 +225,13 @@ export const getRoutes = (routes: RouteDefinition[]) => {
 
       const resolve = (canLoad: boolean) => {
         if (canLoad) {
-          if (route && !loaded[route.path] && (route.component as LazyComponent)?.preload) {
+          if (route && !prefetchRoutes[route.path] && (route.component as LazyComponent)?.preload) {
             routerState.setPending(true);
             (route?.component as LazyComponent)
               ?.preload()
-              .catch(() => {
-                // noop
-              })
+              .catch(noop)
               .finally(() => {
-                loaded[route.path] = true;
+                prefetchRoutes[route.path] = true;
                 routerState.setPending(false);
               });
           }
@@ -274,5 +278,21 @@ export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
   const routes = ([] as RouteDefinition[]).concat(route);
   const routerState = useRouterState();
   routerState.setRoutes(routes);
+
+  // defer prefetch
+  setTimeout(() => {
+    flatRoutes(routes).forEach((route) => {
+      const comp = route.component as LazyComponent | undefined;
+      if (route.prefetch && comp?.preload) {
+        comp
+          .preload()
+          .catch(noop)
+          .finally(() => {
+            prefetchRoutes[route.path] = true;
+          });
+      }
+    });
+  }, 0);
+
   return getRoutes(routes);
 };

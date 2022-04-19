@@ -20,14 +20,6 @@ const routes: RouteDefinition[] = [
     component: lazy(() => import("./pages/home")),
   },
   {
-    path: "/news/:id?",
-    component: lazy(() => import("./pages/news")),
-    canLoad: () => {
-       ...
-       return true;
-    }
-  },
-  {
     path: "/product",
     redirectTo: '/good'
   },
@@ -44,6 +36,15 @@ const routes: RouteDefinition[] = [
         component: lazy(() => import("./pages/good/fruit")),
       },
     ],
+    prefetch: true;
+    canLoad: () => {
+       ...
+       return true;
+    }
+  },
+  {
+    path: "/news/:id?",
+    component: lazy(() => import("./pages/news")),
   },
   {
     path: "/*all",
@@ -107,11 +108,13 @@ Hooks:
 - `useRouteParams()`
   > return route params
 
-- `useCurrentMatch(path: string): Accessor<RouteDefinition | undefined>`
+- `useCurrentMatch(path: string): RouteDefinition | undefined`
   > return current route match by `path`
 
-- `useMatch(path: string): Accessor<RouteDefinition | undefined>`
+- `useMatch(path: string): RouteDefinition | undefined`
   > return route match by `path`
+
+- `usePrefetch(path: string | string[]): prefetch route match by path`
 
 Utils:
 

@@ -11,5 +11,6 @@ export {
   useRouteParams,
   useCurrentMatch,
   useMatch,
+  usePrefetch,
 } from './hook';
 export { matchRoute } from './util';

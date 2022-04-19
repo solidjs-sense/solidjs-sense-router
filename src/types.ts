@@ -14,6 +14,7 @@ export interface Route {
   component?: RouterComponent;
   canLoad?: (location: ReturnType<typeof useLocation>, route: RouteDefinition) => Promise<boolean> | boolean;
   redirectTo?: string;
+  prefetch?: boolean;
 }
 
 export type RouteDefinition = Route & {
