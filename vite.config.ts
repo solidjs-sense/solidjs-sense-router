@@ -5,7 +5,11 @@ import solidPlugin from 'vite-plugin-solid';
 
 export default defineConfig({
   plugins: [
-    solidPlugin(),
+    solidPlugin({
+      babel: {
+        plugins: ['@babel/plugin-proposal-optional-chaining', '@babel/plugin-proposal-nullish-coalescing-operator'],
+      },
+    }),
     dts({
       tsConfigFilePath: 'tsconfig.build.json',
       insertTypesEntry: true,

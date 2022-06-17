@@ -44,7 +44,8 @@ class Api {
         configurable: true,
         enumerable: true,
         get() {
-          return getState.call(this)?.state;
+          const res = getState.call(this);
+          return res && res.state;
         },
         set: undefined,
       });
