@@ -2,7 +2,7 @@ import { batch, createContext, createEffect, createSignal, useContext, createMem
 import { Dynamic } from 'solid-js/web';
 import { api } from './api';
 import { LazyComponent, RouteDefinition, RouterComponent, RouterState, RouteState, UrlParams } from './types';
-import { baseRegex, flatRoutes, formatURL, joinBase, matchRoute, matchRoutes, noop, trimBase } from './util';
+import { baseRegex, flatRoutes, formatURL, joinBase, matchRoute, matchRoutes, trimBase } from './util';
 
 const prefetchRoutes: Record<string, boolean> = {};
 
@@ -49,8 +49,10 @@ export const usePrefetch = (path: string | string[]) => {
       if (comp?.preload) {
         comp
           .preload()
-          .catch(noop)
-          .finally(() => {
+          .then(() => {
+            prefetchRoutes[route.path] = true;
+          })
+          .catch(() => {
             prefetchRoutes[route.path] = true;
           });
       }
@@ -229,8 +231,11 @@ export const getRoutes = (routes: RouteDefinition[]) => {
             routerState.setPending(true);
             (route?.component as LazyComponent)
               ?.preload()
-              .catch(noop)
-              .finally(() => {
+              .then(() => {
+                prefetchRoutes[route.path] = true;
+                routerState.setPending(false);
+              })
+              .catch(() => {
                 prefetchRoutes[route.path] = true;
                 routerState.setPending(false);
               });
@@ -286,8 +291,10 @@ export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
       if (route.prefetch && comp?.preload) {
         comp
           .preload()
-          .catch(noop)
-          .finally(() => {
+          .then(() => {
+            prefetchRoutes[route.path] = true;
+          })
+          .catch(() => {
             prefetchRoutes[route.path] = true;
           });
       }
