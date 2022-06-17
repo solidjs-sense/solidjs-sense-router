@@ -15,7 +15,7 @@ export default defineConfig({
     }),
   ],
   build: {
-    target: 'esnext',
+    target: 'ES2015',
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
       formats: ['es', 'cjs'],
