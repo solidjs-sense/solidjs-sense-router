@@ -78,7 +78,8 @@ export const matchRoute = (pathname: string, route: string) => {
     }
   }
 
-  const m = routeParts.length === pathParts.length;
+  const m =
+    routeParts.length === pathParts.length || (pathParts.length === routeParts.length - 1 && route.endsWith('?'));
 
   return {
     match: m,
