@@ -1,8 +1,8 @@
 import { createEffect, createMemo, mergeProps, onCleanup, splitProps } from 'solid-js';
-import { useCurrentMatch, useNavigator, useLocation, useMatch } from '../hook';
+import { useCurrentMatch, useNavigator, useLocation, useMatch, prefetchRoutes } from '../hook';
 import { api } from '../api';
 import { joinBase } from '../util';
-import { LazyComponent, LinkProps } from '../types';
+import { LazyComponent, LinkProps, RouteDefinition } from '../types';
 
 export const Link = (props: LinkProps) => {
   const defaultProps = mergeProps({ prefetch: 'visible' }, props);
@@ -66,10 +66,17 @@ export const Link = (props: LinkProps) => {
     refAnchor = el;
   };
 
-  const preload = (comp: LazyComponent) => {
-    comp.preload().catch(() => {
-      // noop
-    });
+  const preload = (r: RouteDefinition) => {
+    if (!prefetchRoutes[r.path]) {
+      (r.component as LazyComponent)
+        .preload?.()
+        .then(() => {
+          prefetchRoutes[r.path] = true;
+        })
+        .catch(() => {
+          prefetchRoutes[r.path] = true;
+        });
+    }
   };
 
   let onMouseEnter: (() => void) | undefined;
@@ -99,24 +106,23 @@ export const Link = (props: LinkProps) => {
 
     const match = useMatch(url().pathname);
 
-    const comp = match?.component as LazyComponent | undefined;
-    if (!comp?.preload) {
+    if (!match || !(match.component as LazyComponent).preload) {
       return;
     }
 
     if (linkProps.prefetch === 'hover' && refAnchor) {
       removeOnMouseEnter();
       onMouseEnter = () => {
-        preload(comp);
+        preload(match);
       };
       refAnchor.addEventListener('mouseenter', onMouseEnter);
     } else if (linkProps.prefetch === 'immediate') {
-      preload(comp);
+      preload(match);
     } else if (linkProps.prefetch === 'visible' && refAnchor && !observer) {
       observer = new api.IntersectionObserver!((entries) => {
         entries.forEach((entry) => {
           if (entry.target === refAnchor && entry.isIntersecting) {
-            preload(comp);
+            preload(match);
             removeObserver();
           }
         });

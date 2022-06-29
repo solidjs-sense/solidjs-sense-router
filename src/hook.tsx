@@ -4,7 +4,7 @@ import { api } from './api';
 import { LazyComponent, RouteDefinition, RouterComponent, RouterState, RouteState, UrlParams } from './types';
 import { baseRegex, flatRoutes, formatURL, joinBase, matchRoute, matchRoutes, trimBase } from './util';
 
-const prefetchRoutes: Record<string, boolean> = {};
+export const prefetchRoutes: Record<string, boolean> = {};
 
 export const RouterContext = createContext<RouterState>();
 
