@@ -11,8 +11,9 @@ The SolidJS Router that make sense.
 Sample:
 
 ``` jsx
+import { Component, lazy } from "solid-js";
 import { render } from 'solid-js/web';
-import { useNavigator, useRouter, RouteDefinition } from "solidjs-sense-router";
+import { useRoutes, RouteDefinition } from "solidjs-sense-router";
 
 const routes: RouteDefinition[] = [
   {
