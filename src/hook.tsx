@@ -1,6 +1,7 @@
 import { batch, createContext, createEffect, createSignal, useContext, createMemo, ErrorBoundary } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { api } from './api';
+import { Outlet } from './components/outlet';
 import { LazyComponent, RouteDefinition, RouterComponent, RouterState, RouteState, UrlParams } from './types';
 import { baseRegex, flatRoutes, formatURL, joinBase, matchRoute, matchRoutes, trimBase } from './util';
 
@@ -280,7 +281,16 @@ export const getRoutes = (routes: RouteDefinition[]) => {
 };
 
 export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
-  const routes = ([] as RouteDefinition[]).concat(route);
+  const routes = ([] as RouteDefinition[]).concat(route).map<RouteDefinition>((route) => {
+    if (route.component) {
+      return route;
+    }
+    // match nest route in case parent route does not have component
+    return {
+      ...route,
+      component: () => <Outlet />,
+    };
+  });
   const routerState = useRouterState();
   routerState.setRoutes(routes);
 

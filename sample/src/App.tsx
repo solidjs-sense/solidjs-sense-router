@@ -1,10 +1,10 @@
 import { Component, lazy } from 'solid-js';
-import { useLoading, useRoutes, Router } from '../../src';
+import { useLoading, useRoutes, Router, RouteDefinition } from '../../src';
 import './App.scss';
 import { Nav } from './components/nav';
 import { bases } from './constant';
 
-const routes = [
+const routes: RouteDefinition[] = [
   {
     path: '/',
     component: lazy(async () => import('./pages/home')),
