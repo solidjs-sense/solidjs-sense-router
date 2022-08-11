@@ -11,6 +11,7 @@
 示例:
 
 ``` jsx
+import { Component, lazy } from "solid-js";
 import { render } from 'solid-js/web';
 import { useNavigator, useRouter, RouteDefinition } from "solidjs-sense-router";
 
