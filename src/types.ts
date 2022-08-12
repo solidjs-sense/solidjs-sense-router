@@ -51,6 +51,7 @@ export interface RouteState {
 }
 
 export interface LinkProps extends JSX.AnchorHTMLAttributes<HTMLAnchorElement> {
+  disabled?: boolean;
   state?: any;
   replace?: boolean;
   queryParams?: Record<string, string>;

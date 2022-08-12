@@ -6,7 +6,16 @@ import { LazyComponent, LinkProps, RouteDefinition } from '../types';
 
 export const Link = (props: LinkProps) => {
   const defaultProps = mergeProps({ prefetch: 'visible' }, props);
-  const [linkProps, aProps] = splitProps(defaultProps, ['state', 'replace', 'queryParams', 'activeClass', 'prefetch']);
+  const [linkProps, aProps] = splitProps(defaultProps, [
+    'disabled',
+    'state',
+    'onClick',
+    'onclick',
+    'replace',
+    'queryParams',
+    'activeClass',
+    'prefetch',
+  ]);
   const navigator = useNavigator();
   const location = useLocation();
   let refAnchor: HTMLAnchorElement | undefined;
@@ -39,12 +48,18 @@ export const Link = (props: LinkProps) => {
       target: Element;
     },
   ) => {
-    const { onClick } = aProps;
-    if (typeof onClick === 'function') {
-      onClick(e);
-    } else if (onClick && onClick[0] && typeof onClick[0] === 'function') {
-      onClick[0](onClick[1], e);
+    const { onClick, onclick, disabled } = linkProps;
+    if (disabled) {
+      e.preventDefault();
+      return;
     }
+    [onClick, onclick].forEach((clickCb) => {
+      if (typeof clickCb === 'function') {
+        clickCb(e);
+      } else if (clickCb && clickCb[0] && typeof clickCb[0] === 'function') {
+        clickCb[0](clickCb[1], e);
+      }
+    });
     if (aProps.target === '_blank') {
       return;
     }
