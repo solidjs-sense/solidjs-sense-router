@@ -2,18 +2,24 @@ import { batch, createSignal, JSX, onCleanup, useContext } from 'solid-js';
 import { RouteContext, RouterContext } from '../hook';
 import { api } from '../api';
 import { baseRegex, joinBase, trimBase } from '../util';
-import { RouteDefinition, RouteState } from '../types';
+import { LeaveCallback, RouteDefinition, RouteState } from '../types';
 
 export const WrapRoutes = (props: { children: JSX.Element }) => {
   const parentContext = useContext(RouteContext);
   const [childContext, setChildContext] = createSignal<RouteState | undefined>();
   const [route, setRoute] = createSignal<RouteDefinition | undefined>();
+  let leaveCallbacks: LeaveCallback[] = [];
   const context = {
     parentContext,
     route,
     setRoute,
     childContext,
     setChildContext,
+    get leaveCallbacks() {
+      return leaveCallbacks;
+    },
+    setLeaveCallbacks: (cb: LeaveCallback) => leaveCallbacks.push(cb),
+    clearLeaveCallbacks: () => (leaveCallbacks = []),
   };
 
   parentContext?.setChildContext(context);

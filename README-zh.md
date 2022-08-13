@@ -117,6 +117,12 @@ Hooks:
 
 - `usePrefetch(path: string | string[]): 预加载匹配 path 的路由`
 
+- `useRouteAction(): [Accessor<ActionType>, Accessor<number>]` 返回路由动作（前进/后退）和当前路由数，路由数从 `0` 开始
+  - `ActionType`: `forward` | `backward` 当前的路由是前进还是后退
+
+- `onRouteLeave((action: ActionType, length: number) => Promise<any>)`
+  - 当前路由页面会在回调函数返回的 Promise resolve 之后卸载，可以用来做页面卸载特效
+
 工具函数:
 
 - `matchRoute(path: string, route: string): { match: boolean; params: Record<string, string> }`

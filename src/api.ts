@@ -3,7 +3,7 @@ import { Session } from './types';
 
 type PopStateCb = (...params: any[]) => void;
 
-type ActionType = 'forward' | 'backward';
+export type ActionType = 'forward' | 'backward';
 
 type ActionData = {
   length: number;

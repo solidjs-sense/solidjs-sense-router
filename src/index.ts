@@ -12,6 +12,7 @@ export {
   useCurrentMatch,
   useMatch,
   usePrefetch,
-  useHistoryAction,
+  useRouteAction as useHistoryAction,
+  onRouteLeave,
 } from './hook';
 export { matchRoute } from './util';

@@ -117,6 +117,12 @@ Hooks:
 
 - `usePrefetch(path: string | string[]): prefetch route match by path`
 
+- `useRouteAction(): [Accessor<ActionType>, Accessor<number>]` return route action (forward/backward) and current route number which start from `0`
+  - `ActionType`: `forward` | `backward` current route is forward or backward
+
+- `onRouteLeave((action: ActionType, length: number) => Promise<any>)`
+  - current route page will unMount until callback's Promise resolve, so you can do some page effects before page leave
+
 Utils:
 
 - `matchRoute(path: string, route: string): { match: boolean; params: Record<string, string> }`

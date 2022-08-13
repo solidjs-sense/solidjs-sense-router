@@ -100,3 +100,29 @@ export const matchRoutes = (pathname: string, route: RouteDefinition): RouteDefi
 
   return;
 };
+
+export class Mute {
+  private running = 0;
+  private queue: (() => void)[] = [];
+
+  constructor(private total: number) {}
+
+  require = () => {
+    return new Promise<() => void>((resolve) => {
+      const response = () => {
+        this.running += 1;
+        resolve(() => {
+          this.running -= 1;
+          if (this.queue.length && this.running < this.total) {
+            this.queue.shift()!();
+          }
+        });
+      };
+      if (this.running >= this.total) {
+        this.queue.push(response);
+      } else {
+        response();
+      }
+    });
+  };
+}

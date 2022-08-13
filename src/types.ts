@@ -1,4 +1,5 @@
 import { Accessor, Component, JSX } from 'solid-js';
+import { ActionType } from './api';
 import { useLocation } from './hook';
 
 export type LazyComponent = Component<any> & {
@@ -42,12 +43,17 @@ export interface RouterState {
   setState: (state: any) => void;
 }
 
+export type LeaveCallback = (action: ActionType, length: number) => Promise<any>;
+
 export interface RouteState {
   route: Accessor<RouteDefinition | undefined>;
   setRoute: (route: RouteDefinition | undefined) => void;
   parentContext?: RouteState;
   childContext: Accessor<RouteState | undefined>;
   setChildContext: (state: RouteState | undefined) => void;
+  leaveCallbacks: LeaveCallback[];
+  setLeaveCallbacks: (cb: LeaveCallback) => void;
+  clearLeaveCallbacks: () => void;
 }
 
 export interface LinkProps extends JSX.AnchorHTMLAttributes<HTMLAnchorElement> {

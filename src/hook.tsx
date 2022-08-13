@@ -1,9 +1,27 @@
-import { batch, createContext, createEffect, createSignal, useContext, createMemo, ErrorBoundary } from 'solid-js';
+import {
+  batch,
+  createContext,
+  createEffect,
+  createSignal,
+  useContext,
+  createMemo,
+  ErrorBoundary,
+  Accessor,
+  untrack,
+} from 'solid-js';
 import { Dynamic } from 'solid-js/web';
-import { api } from './api';
+import { ActionType, api } from './api';
 import { Outlet } from './components/outlet';
-import { LazyComponent, RouteDefinition, RouterComponent, RouterState, RouteState, UrlParams } from './types';
-import { baseRegex, flatRoutes, formatURL, joinBase, matchRoute, matchRoutes, trimBase } from './util';
+import {
+  LazyComponent,
+  LeaveCallback,
+  RouteDefinition,
+  RouterComponent,
+  RouterState,
+  RouteState,
+  UrlParams,
+} from './types';
+import { baseRegex, flatRoutes, formatURL, joinBase, matchRoute, matchRoutes, Mute, trimBase } from './util';
 
 export const prefetchRoutes: Record<string, boolean> = {};
 
@@ -11,7 +29,7 @@ export const RouterContext = createContext<RouterState>();
 
 export const RouteContext = createContext<RouteState>();
 
-export const useHistoryAction = () => {
+export const useRouteAction = (): [Accessor<ActionType>, Accessor<number>] => {
   return [api.direction, api.length];
 };
 
@@ -205,13 +223,20 @@ export const useNavigator = () => {
   };
 };
 
+export const onRouteLeave = (cb: LeaveCallback) => {
+  const state = useRouteState();
+  state.setLeaveCallbacks(cb);
+};
+
 export const getRoutes = (routes: RouteDefinition[]) => {
   return () => {
+    const mute = new Mute(1);
     const routerState = useRouterState();
     const routeState = useRouteState();
     const location = useLocation();
     const navigator = useNavigator();
     const [router, setRouter] = createSignal<RouterComponent | undefined>();
+    const [direction, length] = useRouteAction();
     let reset: undefined | (() => void);
 
     createEffect(() => {
@@ -230,7 +255,16 @@ export const getRoutes = (routes: RouteDefinition[]) => {
         });
       }
 
-      const resolve = (canLoad: boolean) => {
+      const resolve = async (canLoad: boolean) => {
+        const release = await mute.require();
+        if (routeState.leaveCallbacks.length) {
+          await Promise.all(routeState.leaveCallbacks.map((cb) => cb(untrack(direction), untrack(length)))).catch(
+            (error) => {
+              console.error(error);
+            },
+          );
+          routeState.clearLeaveCallbacks();
+        }
         if (canLoad) {
           if (route && !prefetchRoutes[route.path] && (route.component as LazyComponent)?.preload) {
             routerState.setPending(true);
@@ -255,6 +289,7 @@ export const getRoutes = (routes: RouteDefinition[]) => {
             setRouter(undefined);
           });
         }
+        release();
       };
 
       const canLoad = (route?.canLoad || (() => true))(location, route!);
