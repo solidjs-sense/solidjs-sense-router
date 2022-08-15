@@ -6,6 +6,10 @@ The SolidJS Router that make sense.
 
 `npm install solidjs-sense-router` or `yarn add solidjs-sense-router`
 
+**Why not [solid-router](https://github.com/solidjs/solid-router)**
+
+Please take a look at https://github.com/solidjs/solid-router/issues/64 and `newBase` api of this library
+
 ## Usage
 
 Sample:

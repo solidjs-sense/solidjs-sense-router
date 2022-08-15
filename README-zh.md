@@ -6,6 +6,10 @@
 
 `npm install solidjs-sense-router` 或 `yarn add solidjs-sense-router`
 
+**为什么不 [solid-router](https://github.com/solidjs/solid-router)**
+
+请看 https://github.com/solidjs/solid-router/issues/64 和本库提供的 `newBase` api
+
 ## 使用
 
 示例:

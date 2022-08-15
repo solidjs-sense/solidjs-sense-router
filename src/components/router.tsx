@@ -1,7 +1,7 @@
 import { batch, createSignal, JSX, onCleanup, useContext } from 'solid-js';
 import { RouteContext, RouterContext } from '../hook';
 import { api } from '../api';
-import { baseRegex, joinBase, trimBase } from '../util';
+import { baseRegex, formatURL, joinBase, trimBase } from '../util';
 import { LeaveCallback, RouteDefinition, RouteState } from '../types';
 
 export const WrapRoutes = (props: { children: JSX.Element }) => {
@@ -40,7 +40,7 @@ export const Router = (props: { url?: string; defaultBase?: string; children: JS
   const [pending, setPending] = createSignal(false);
   const [base, setBase] = createSignal(props.defaultBase ?? '');
   const [state, setState] = createSignal<any>(api.state);
-  const defaultUrl = new URL(props.url ? props.url : api.href!);
+  const defaultUrl = formatURL({ url: props.url ? props.url : api.href! });
 
   if (base() && baseRegex(base()).test(defaultUrl.pathname)) {
     defaultUrl.pathname = trimBase(base(), defaultUrl);

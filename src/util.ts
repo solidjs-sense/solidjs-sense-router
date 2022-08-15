@@ -25,8 +25,13 @@ export const flatRoutes = (routes: RouteDefinition[], parentPath?: string): Rout
   }, []);
 };
 
-export const formatURL = (params: UrlParams, oldURL: URL): URL => {
+export const formatURL = (params: UrlParams, oldURL?: URL): URL => {
   const url = new URL(params.url, oldURL);
+
+  // remove tail end
+  if (url.pathname.length > 1 && url.pathname.endsWith('/')) {
+    url.pathname = url.pathname.slice(0, -1);
+  }
 
   url.hash = params.hash ?? url.hash;
 
@@ -60,7 +65,7 @@ export const trimBase = (base: string, url: URL) => {
 export const matchRoute = (pathname: string, route: string) => {
   const params: Record<string, string> = {};
   const routeParts = route.split('/');
-  const pathParts = pathname.split('/');
+  const pathParts = (pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname).split('/');
 
   let i = 0;
   for (; i < routeParts.length; i++) {
