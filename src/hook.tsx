@@ -52,14 +52,7 @@ export const useRouteParams = () => {
       return {};
     }
 
-    const { url } = useLocation();
-    const { match, params } = matchRoute(url().pathname, route.path);
-
-    if (match) {
-      return params;
-    }
-
-    return {};
+    return matchRoute(useLocation().url().pathname, route.path).params;
   });
 };
 

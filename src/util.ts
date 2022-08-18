@@ -78,7 +78,7 @@ export const matchRoute = (pathname: string, route: string) => {
         match: true,
         params,
       };
-    } else if (routePart !== pathParts[i]) {
+    } else if (pathParts[i] !== undefined && routePart !== pathParts[i]) {
       return { match: false, params: {} };
     }
   }
@@ -88,7 +88,7 @@ export const matchRoute = (pathname: string, route: string) => {
 
   return {
     match: m,
-    params: m ? params : {},
+    params,
   };
 };
 
