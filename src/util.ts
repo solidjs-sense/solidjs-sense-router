@@ -26,7 +26,10 @@ export const flatRoutes = (routes: RouteDefinition[], parentPath?: string): Rout
 };
 
 export const formatURL = (params: UrlParams, oldURL?: URL): URL => {
-  const url = new URL(params.url, oldURL);
+  // NOTE
+  // With IOS 14.0 and Safari 14.0
+  // new URL('https:/xxxxx.com', undefined) will throw `Type error`
+  const url = oldURL ? new URL(params.url, oldURL) : new URL(params.url);
 
   // remove tail end
   if (url.pathname.length > 1 && url.pathname.endsWith('/')) {
