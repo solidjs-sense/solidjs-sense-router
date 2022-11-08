@@ -11,7 +11,6 @@ import {
 } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { ActionType, api } from './api';
-import { Outlet } from './components/outlet';
 import {
   LazyComponent,
   LeaveCallback,
@@ -59,12 +58,10 @@ export const useRouteParams = () => {
 export const usePrefetch = (path: string | string[]) => {
   const paths = ([] as string[]).concat(path);
   paths.forEach((path) => {
-    const route = useMatch(path);
-    if (route && !prefetchRoutes[route.path]) {
-      const comp = route.component as LazyComponent | undefined;
-      if (comp?.preload) {
-        comp
-          .preload()
+    useMatch(path).forEach((route) => {
+      if (!prefetchRoutes[route.path]) {
+        (route.component as LazyComponent | undefined)
+          ?.preload?.()
           .then(() => {
             prefetchRoutes[route.path] = true;
           })
@@ -72,19 +69,13 @@ export const usePrefetch = (path: string | string[]) => {
             prefetchRoutes[route.path] = true;
           });
       }
-    }
+    });
   });
 };
 
-export const useMatch = (path: string | (() => string)): RouteDefinition | undefined => {
+export const useMatch = (path: string | (() => string)): RouteDefinition[] => {
   const routes = useRouterState().routes();
-  for (let i = 0; i < routes.length; i++) {
-    const route = routes[i];
-    const match = matchRoutes(typeof path === 'function' ? path() : path, route);
-    if (match) {
-      return match;
-    }
-  }
+  return matchRoutes(typeof path === 'function' ? path() : path, routes);
 };
 
 export const useCurrentMatch = (path: string | (() => string)): RouteDefinition | undefined => {
@@ -235,7 +226,7 @@ export const getRoutes = (routes: RouteDefinition[]) => {
     createEffect(() => {
       const url = location.url();
       const route = routes.find((rut) => {
-        return matchRoutes(url.pathname, rut) !== undefined;
+        return matchRoutes(url.pathname, rut).length !== 0;
       });
 
       reset?.();
@@ -259,10 +250,10 @@ export const getRoutes = (routes: RouteDefinition[]) => {
           routeState.clearLeaveCallbacks();
         }
         if (canLoad) {
-          if (route && !prefetchRoutes[route.path] && (route.component as LazyComponent)?.preload) {
+          if (route && !prefetchRoutes[route.path] && (route.component as LazyComponent | undefined)?.preload) {
             routerState.setPending(true);
-            (route?.component as LazyComponent)
-              ?.preload()
+            (route.component as LazyComponent)
+              .preload()
               .then(() => {
                 prefetchRoutes[route.path] = true;
                 routerState.setPending(false);
@@ -313,16 +304,7 @@ export const getRoutes = (routes: RouteDefinition[]) => {
 };
 
 export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
-  const routes = ([] as RouteDefinition[]).concat(route).map<RouteDefinition>((route) => {
-    if (route.component) {
-      return route;
-    }
-    // match nest route in case parent route does not have component
-    return {
-      ...route,
-      component: () => <Outlet />,
-    };
-  });
+  const routes = ([] as RouteDefinition[]).concat(route);
   const routerState = useRouterState();
   routerState.setRoutes(routes);
 

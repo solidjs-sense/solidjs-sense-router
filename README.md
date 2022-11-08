@@ -116,7 +116,7 @@ Hooks:
 - `useCurrentMatch(path: string): RouteDefinition | undefined`
   > return current route match by `path`
 
-- `useMatch(path: string): RouteDefinition | undefined`
+- `useMatch(path: string): RouteDefinition[]`
   > return route match by `path`
 
 - `usePrefetch(path: string | string[]): prefetch route match by path`

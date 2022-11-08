@@ -116,7 +116,7 @@ Hooks:
 - `useCurrentMatch(path: string): RouteDefinition | undefined`
   > 返回当前的匹配的路由
 
-- `useMatch(path: string): RouteDefinition | undefined`
+- `useMatch(path: string): RouteDefinition[]`
   > 返回匹配的路由
 
 - `usePrefetch(path: string | string[]): 预加载匹配 path 的路由`

@@ -95,18 +95,19 @@ export const matchRoute = (pathname: string, route: string) => {
   };
 };
 
-export const matchRoutes = (pathname: string, route: RouteDefinition): RouteDefinition | undefined => {
+export const matchRoutes = (pathname: string, route: RouteDefinition | RouteDefinition[]): RouteDefinition[] => {
+  const result: RouteDefinition[] = [];
   const routes = flatRoutes(([] as RouteDefinition[]).concat(route));
 
   for (let i = 0; i < routes.length; i++) {
     const route = routes[i];
     const { match } = matchRoute(pathname, route.path);
     if (match) {
-      return route;
+      result.push(route);
     }
   }
 
-  return;
+  return result;
 };
 
 export class Mute {

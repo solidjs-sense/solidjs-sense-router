@@ -83,8 +83,8 @@ export const Link = (props: LinkProps) => {
 
   const preload = (r: RouteDefinition) => {
     if (!prefetchRoutes[r.path]) {
-      (r.component as LazyComponent)
-        .preload?.()
+      (r.component as LazyComponent | undefined)
+        ?.preload?.()
         .then(() => {
           prefetchRoutes[r.path] = true;
         })
@@ -119,31 +119,31 @@ export const Link = (props: LinkProps) => {
       removeObserver();
     }
 
-    const match = useMatch(url().pathname);
+    useMatch(url().pathname).forEach((match) => {
+      if (!(match.component as LazyComponent | undefined)?.preload) {
+        return;
+      }
 
-    if (!match || !(match.component as LazyComponent).preload) {
-      return;
-    }
-
-    if (linkProps.prefetch === 'hover' && refAnchor) {
-      removeOnMouseEnter();
-      onMouseEnter = () => {
+      if (linkProps.prefetch === 'hover' && refAnchor) {
+        removeOnMouseEnter();
+        onMouseEnter = () => {
+          preload(match);
+        };
+        refAnchor.addEventListener('mouseenter', onMouseEnter);
+      } else if (linkProps.prefetch === 'immediate') {
         preload(match);
-      };
-      refAnchor.addEventListener('mouseenter', onMouseEnter);
-    } else if (linkProps.prefetch === 'immediate') {
-      preload(match);
-    } else if (linkProps.prefetch === 'visible' && refAnchor && !observer) {
-      observer = new api.IntersectionObserver!((entries) => {
-        entries.forEach((entry) => {
-          if (entry.target === refAnchor && entry.isIntersecting) {
-            preload(match);
-            removeObserver();
-          }
+      } else if (linkProps.prefetch === 'visible' && refAnchor && !observer) {
+        observer = new api.IntersectionObserver!((entries) => {
+          entries.forEach((entry) => {
+            if (entry.target === refAnchor && entry.isIntersecting) {
+              preload(match);
+              removeObserver();
+            }
+          });
         });
-      });
-      observer.observe(refAnchor);
-    }
+        observer.observe(refAnchor);
+      }
+    });
   });
 
   onCleanup(() => {
