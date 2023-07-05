@@ -14,5 +14,7 @@ export {
   usePrefetch,
   useRouteAction,
   onRouteLeave,
+  RouteContext,
+  RouterContext,
 } from './hook';
 export { matchRoute } from './util';
