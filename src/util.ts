@@ -1,4 +1,4 @@
-import { Route, RouteDefinition, UrlParams } from './types';
+import { FlatRoute, RouteDefinition, UrlParams } from './types';
 
 export const noop = () => {
   // noop
@@ -13,15 +13,16 @@ export const flatRouteChildren = (routes: RouteDefinition[], parentPath?: string
   });
 };
 
-export const flatRoutes = (routes: RouteDefinition[], parentPath?: string): RouteDefinition[] => {
-  return routes.reduce<Route[]>((acc, cur) => {
+export const flatRoutes = (routes: RouteDefinition[], parentRoute?: FlatRoute): FlatRoute[] => {
+  return routes.reduce<FlatRoute[]>((acc, cur) => {
     const { path, children } = cur;
-    const route: RouteDefinition = {
+    const route: FlatRoute = {
       ...cur,
-      path: `${parentPath || ''}${path}`,
+      path: `${parentRoute?.path || ''}${path}`,
+      parentRoute,
     };
     acc.push(route);
-    return children ? acc.concat(flatRoutes(children, route.path)) : acc;
+    return children ? acc.concat(flatRoutes(children, route)) : acc;
   }, []);
 };
 
@@ -95,8 +96,8 @@ export const matchRoute = (pathname: string, route: string) => {
   };
 };
 
-export const matchRoutes = (pathname: string, route: RouteDefinition | RouteDefinition[]): RouteDefinition[] => {
-  const result: RouteDefinition[] = [];
+export const matchRoutes = (pathname: string, route: RouteDefinition | RouteDefinition[]): FlatRoute[] => {
+  const result: FlatRoute[] = [];
   const routes = flatRoutes(([] as RouteDefinition[]).concat(route));
 
   for (let i = 0; i < routes.length; i++) {

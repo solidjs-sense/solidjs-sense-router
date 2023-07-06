@@ -130,6 +130,11 @@ export const Link = (props: LinkProps) => {
     const preloadMatches = () => {
       matches.forEach((match) => {
         preload(match);
+        let p = match.parentRoute;
+        while (p) {
+          preload(p);
+          p = p.parentRoute;
+        }
       });
     };
     if (linkProps.prefetch === 'hover' && refAnchor) {

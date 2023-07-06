@@ -10,18 +10,17 @@ export type LazyComponent = Component<any> & {
 
 export type RouterComponent = JSX.FunctionElement | LazyComponent;
 
-export interface Route {
+export type RouteDefinition = {
   path: string;
   id?: string;
   component?: RouterComponent;
   canLoad?: (location: ReturnType<typeof useLocation>, route: RouteDefinition) => Promise<boolean> | boolean;
   redirectTo?: string;
   prefetch?: boolean;
-}
-
-export type RouteDefinition = Route & {
   children?: RouteDefinition[];
 };
+
+export type FlatRoute = RouteDefinition & { parentRoute?: FlatRoute };
 
 export type UrlParams = {
   url: URL | string;

@@ -12,6 +12,7 @@ import {
 import { Dynamic } from 'solid-js/web';
 import { ActionType, api } from './api';
 import {
+  FlatRoute,
   LazyComponent,
   LeaveCallback,
   RouteDefinition,
@@ -80,7 +81,7 @@ export const usePrefetch = (path: string | string[]) => {
   });
 };
 
-export const useMatch = (path: string | (() => string)): RouteDefinition[] => {
+export const useMatch = (path: string | (() => string)): FlatRoute[] => {
   const routes = useRouterState().routes();
   return matchRoutes(typeof path === 'function' ? path() : path, routes);
 };
