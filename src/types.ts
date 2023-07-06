@@ -12,6 +12,7 @@ export type RouterComponent = JSX.FunctionElement | LazyComponent;
 
 export interface Route {
   path: string;
+  id?: string;
   component?: RouterComponent;
   canLoad?: (location: ReturnType<typeof useLocation>, route: RouteDefinition) => Promise<boolean> | boolean;
   redirectTo?: string;

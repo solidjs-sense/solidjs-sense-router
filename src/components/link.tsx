@@ -1,5 +1,5 @@
 import { createEffect, createMemo, mergeProps, onCleanup, splitProps } from 'solid-js';
-import { useCurrentMatch, useNavigator, useLocation, useMatch, prefetchRoutes } from '../hook';
+import { useCurrentMatch, useNavigator, useLocation, useMatch, prefetchRoutes, PrefetchState } from '../hook';
 import { api } from '../api';
 import { joinBase } from '../util';
 import { LazyComponent, LinkProps, RouteDefinition } from '../types';
@@ -21,11 +21,12 @@ export const Link = (props: LinkProps) => {
   let refAnchor: HTMLAnchorElement | undefined;
 
   const url = createMemo(() => new URL(aProps.href ?? '', location.url()));
+  const urlPathname = createMemo(() => url().pathname);
 
   const classList = createMemo(() => {
     return linkProps.activeClass
       ? {
-          [linkProps.activeClass]: !!useCurrentMatch(url().pathname),
+          [linkProps.activeClass]: !!useCurrentMatch(urlPathname()),
           ...(aProps.classList || {}),
         }
       : { ...(aProps.classList || {}) };
@@ -82,14 +83,16 @@ export const Link = (props: LinkProps) => {
   };
 
   const preload = (r: RouteDefinition) => {
-    if (!prefetchRoutes[r.path]) {
+    const uniquePath = `${r.id || ''}${r.path}`;
+    if (!prefetchRoutes[uniquePath]) {
+      prefetchRoutes[uniquePath] = PrefetchState.Pending;
       (r.component as LazyComponent | undefined)
         ?.preload?.()
         .then(() => {
-          prefetchRoutes[r.path] = true;
+          prefetchRoutes[uniquePath] = PrefetchState.Loaded;
         })
         .catch(() => {
-          prefetchRoutes[r.path] = true;
+          prefetchRoutes[uniquePath] = PrefetchState.Loaded;
         });
     }
   };
@@ -115,35 +118,38 @@ export const Link = (props: LinkProps) => {
       return;
     }
 
-    if (linkProps.prefetch !== 'visible') {
-      removeObserver();
+    const matches = useMatch(urlPathname());
+
+    removeObserver();
+    removeOnMouseEnter();
+
+    if (matches.every((match) => !(match.component as LazyComponent | undefined)?.preload)) {
+      return;
     }
 
-    useMatch(url().pathname).forEach((match) => {
-      if (!(match.component as LazyComponent | undefined)?.preload) {
-        return;
-      }
-
-      if (linkProps.prefetch === 'hover' && refAnchor) {
-        removeOnMouseEnter();
-        onMouseEnter = () => {
-          preload(match);
-        };
-        refAnchor.addEventListener('mouseenter', onMouseEnter);
-      } else if (linkProps.prefetch === 'immediate') {
+    const preloadMatches = () => {
+      matches.forEach((match) => {
         preload(match);
-      } else if (linkProps.prefetch === 'visible' && refAnchor && !observer) {
-        observer = new api.IntersectionObserver!((entries) => {
-          entries.forEach((entry) => {
-            if (entry.target === refAnchor && entry.isIntersecting) {
-              preload(match);
-              removeObserver();
-            }
-          });
+      });
+    };
+    if (linkProps.prefetch === 'hover' && refAnchor) {
+      onMouseEnter = () => {
+        preloadMatches();
+      };
+      refAnchor.addEventListener('mouseenter', onMouseEnter);
+    } else if (linkProps.prefetch === 'immediate') {
+      preloadMatches();
+    } else if (linkProps.prefetch === 'visible' && refAnchor && !observer) {
+      observer = new api.IntersectionObserver!((entries) => {
+        entries.forEach((entry) => {
+          if (entry.target === refAnchor && entry.isIntersecting) {
+            preloadMatches();
+            removeObserver();
+          }
         });
-        observer.observe(refAnchor);
-      }
-    });
+      });
+      observer.observe(refAnchor);
+    }
   });
 
   onCleanup(() => {

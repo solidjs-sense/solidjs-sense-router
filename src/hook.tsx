@@ -22,7 +22,12 @@ import {
 } from './types';
 import { baseRegex, flatRoutes, formatURL, joinBase, matchRoute, matchRoutes, Mute, trimBase } from './util';
 
-export const prefetchRoutes: Record<string, boolean> = {};
+export enum PrefetchState {
+  Pending = 1,
+  Loaded = 2,
+}
+
+export const prefetchRoutes: Record<string, PrefetchState> = {};
 
 export const RouterContext = createContext<RouterState>();
 
@@ -59,14 +64,16 @@ export const usePrefetch = (path: string | string[]) => {
   const paths = ([] as string[]).concat(path);
   paths.forEach((path) => {
     useMatch(path).forEach((route) => {
-      if (!prefetchRoutes[route.path]) {
+      const uniquePath = `${route.id || ''}${route.path}`;
+      if (!prefetchRoutes[uniquePath]) {
+        prefetchRoutes[uniquePath] = PrefetchState.Pending;
         (route.component as LazyComponent | undefined)
           ?.preload?.()
           .then(() => {
-            prefetchRoutes[route.path] = true;
+            prefetchRoutes[uniquePath] = PrefetchState.Loaded;
           })
           .catch(() => {
-            prefetchRoutes[route.path] = true;
+            prefetchRoutes[uniquePath] = PrefetchState.Loaded;
           });
       }
     });
@@ -250,16 +257,22 @@ export const getRoutes = (routes: RouteDefinition[]) => {
           routeState.clearLeaveCallbacks();
         }
         if (canLoad) {
-          if (route && !prefetchRoutes[route.path] && (route.component as LazyComponent | undefined)?.preload) {
+          const uniquePath = `${route?.id || ''}${route?.path}`;
+          if (
+            route &&
+            prefetchRoutes[uniquePath] !== PrefetchState.Loaded &&
+            (route.component as LazyComponent | undefined)?.preload
+          ) {
+            prefetchRoutes[uniquePath] = PrefetchState.Pending;
             routerState.setPending(true);
             (route.component as LazyComponent)
               .preload()
               .then(() => {
-                prefetchRoutes[route.path] = true;
+                prefetchRoutes[uniquePath] = PrefetchState.Loaded;
                 routerState.setPending(false);
               })
               .catch(() => {
-                prefetchRoutes[route.path] = true;
+                prefetchRoutes[uniquePath] = PrefetchState.Loaded;
                 routerState.setPending(false);
               });
           }
@@ -312,14 +325,16 @@ export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
   setTimeout(() => {
     flatRoutes(routes).forEach((route) => {
       const comp = route.component as LazyComponent | undefined;
-      if (route.prefetch && comp?.preload) {
+      const uniquePath = `${route.id || ''}${route.path}`;
+      if (!prefetchRoutes[uniquePath] && route.prefetch && comp?.preload) {
+        prefetchRoutes[uniquePath] = PrefetchState.Pending;
         comp
           .preload()
           .then(() => {
-            prefetchRoutes[route.path] = true;
+            prefetchRoutes[uniquePath] = PrefetchState.Loaded;
           })
           .catch(() => {
-            prefetchRoutes[route.path] = true;
+            prefetchRoutes[uniquePath] = PrefetchState.Loaded;
           });
       }
     });
