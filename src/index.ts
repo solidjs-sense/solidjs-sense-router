@@ -13,6 +13,8 @@ export {
   useMatch,
   usePrefetch,
   useRouteAction,
+  useRouteState,
+  useRouterState,
   onRouteLeave,
   RouteContext,
   RouterContext,

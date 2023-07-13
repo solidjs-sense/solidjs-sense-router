@@ -4,6 +4,9 @@ import { api } from '../api';
 import { joinBase } from '../util';
 import { LazyComponent, LinkProps, RouteDefinition } from '../types';
 
+let observer: IntersectionObserver | undefined;
+let observerCbs: Map<HTMLAnchorElement, () => void> | undefined;
+
 export const Link = (props: LinkProps) => {
   const defaultProps = mergeProps({ prefetch: 'visible' }, props);
   const [linkProps, aProps] = splitProps(defaultProps, [
@@ -105,11 +108,10 @@ export const Link = (props: LinkProps) => {
     }
   };
 
-  let observer: IntersectionObserver | undefined;
   const removeObserver = () => {
-    if (observer) {
-      observer.disconnect();
-      observer = undefined;
+    if (refAnchor) {
+      observerCbs?.delete(refAnchor);
+      observer?.unobserve(refAnchor);
     }
   };
 
@@ -118,10 +120,25 @@ export const Link = (props: LinkProps) => {
       return;
     }
 
-    const matches = useMatch(urlPathname());
+    if (!observerCbs) {
+      observerCbs = new Map();
+    }
+
+    if (!observer) {
+      observer = new api.IntersectionObserver!((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) {
+            return;
+          }
+          observerCbs!.get(entry.target as HTMLAnchorElement)?.();
+        });
+      });
+    }
 
     removeObserver();
     removeOnMouseEnter();
+
+    const matches = useMatch(urlPathname());
 
     if (matches.every((match) => !(match.component as LazyComponent | undefined)?.preload)) {
       return;
@@ -137,6 +154,7 @@ export const Link = (props: LinkProps) => {
         }
       });
     };
+
     if (linkProps.prefetch === 'hover' && refAnchor) {
       onMouseEnter = () => {
         preloadMatches();
@@ -144,14 +162,10 @@ export const Link = (props: LinkProps) => {
       refAnchor.addEventListener('mouseenter', onMouseEnter);
     } else if (linkProps.prefetch === 'immediate') {
       preloadMatches();
-    } else if (linkProps.prefetch === 'visible' && refAnchor && !observer) {
-      observer = new api.IntersectionObserver!((entries) => {
-        entries.forEach((entry) => {
-          if (entry.target === refAnchor && entry.isIntersecting) {
-            preloadMatches();
-            removeObserver();
-          }
-        });
+    } else if (linkProps.prefetch === 'visible' && refAnchor) {
+      observerCbs.set(refAnchor, () => {
+        preloadMatches();
+        removeObserver();
       });
       observer.observe(refAnchor);
     }
