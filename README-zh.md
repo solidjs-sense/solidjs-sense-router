@@ -78,6 +78,7 @@ render(() => <App />, document.getElementById('root') as HTMLElement);
     - `children`: `JSX.Element`
     - `url`: 当前的 url，在服务端渲染模式必须传
     - `defaultBase`: 默认的 base (默认值: `''`)
+    - `maxKeepAlive`: 最大 keepAlive 数量, 默认无限制
 
 - `<Link ...props />`
     - props: 和 `a` 标签的 props 相同 并且多了:
@@ -91,6 +92,12 @@ render(() => <App />, document.getElementById('root') as HTMLElement);
           - `hover`: 当 `Link` 鼠标悬停时开始预加载
           - `none`: 不预加载
 - `<Outlet />` 嵌套子路由
+- `<KeepAlive ...props />` 在父组件 unMounted 后缓存组件状态, 复用 signals 和 DOM elements. idea from [solid-keep-alive](https://github.com/JulianSoto/solid-keep-alive)
+    - props:
+        - `children`: `JSX.Element`
+        - `id`: 唯一 id
+        - `onShow` 当要显示的时候调用
+        - `onHide` 当要隐藏的时候调用
 
 Hooks:
 

@@ -78,6 +78,7 @@ Components:
     - `children`: `JSX.Element`
     - `url`: current url (must be set in server mode)
     - `defaultBase`: default base url (default: `''`)
+    - `maxKeepAlive`: max element for keepAlive, default unlimited
 
 - `<Link ...props />`
     - props: same as `a` tag and more have:
@@ -91,6 +92,12 @@ Components:
           - `hover`: prefetch when mouse is over link
           - `none`: don't prefetch
 - `<Outlet />` nest child
+- `<KeepAlive ...props />` Keep components alive even after parent's unmounts, saving signals and DOM elements in cache to reuse them. idea from [solid-keep-alive](https://github.com/JulianSoto/solid-keep-alive)
+    - props:
+        - `children`: `JSX.Element`
+        - `id`: unique id for cache
+        - `onShow` call when show
+        - `onHide` call when hide
 
 Hooks:
 

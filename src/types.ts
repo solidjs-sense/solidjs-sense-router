@@ -1,4 +1,5 @@
-import { Accessor, Component, JSX } from 'solid-js';
+import { Accessor, Component, JSX, JSXElement } from 'solid-js';
+import { Owner } from 'solid-js/types/reactive/signal';
 import { ActionType } from './api';
 import { useLocation } from './hook';
 
@@ -18,6 +19,11 @@ export type RouteDefinition = {
   redirectTo?: string;
   prefetch?: boolean;
   children?: RouteDefinition[];
+  keepAlive?: {
+    id: string;
+    onShow?: () => void;
+    onHide?: () => void;
+  };
 };
 
 export type FlatRoute = RouteDefinition & { parentRoute?: FlatRoute };
@@ -41,6 +47,13 @@ export interface RouterState {
   setBase: (base: string) => void;
   state: Accessor<any>;
   setState: (state: any) => void;
+  keepAlive: {
+    maxKeepAlive: Accessor<number | undefined>;
+    keepAliveElements: Accessor<KeepAliveElement[]>;
+    setKeepAliveElements: (elements: KeepAliveElement[] | ((pre: KeepAliveElement[]) => KeepAliveElement[])) => void;
+    insertKeepAliveElement: (element: KeepAliveElement) => void;
+    removeKeepAliveElement: (id: string) => void;
+  };
 }
 
 export type LeaveCallback = (action: ActionType, length: number) => Promise<any>;
@@ -81,4 +94,12 @@ export interface Session {
   url: string;
   base: string;
   state?: any;
+}
+
+export interface KeepAliveElement {
+  id: string;
+  owner: Owner | null;
+  children: JSXElement;
+  dispose: () => void;
+  unMounted: boolean;
 }

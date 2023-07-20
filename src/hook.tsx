@@ -2,21 +2,23 @@ import {
   batch,
   createContext,
   createEffect,
-  createSignal,
   useContext,
   createMemo,
   ErrorBoundary,
   Accessor,
   untrack,
+  For,
+  Show,
 } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { ActionType, api } from './api';
+import { KeepAlive } from './components/keep-alive';
 import {
   FlatRoute,
+  KeepAliveElement,
   LazyComponent,
   LeaveCallback,
   RouteDefinition,
-  RouterComponent,
   RouterState,
   RouteState,
   UrlParams,
@@ -227,7 +229,6 @@ export const getRoutes = (routes: RouteDefinition[]) => {
     const routeState = useRouteState();
     const location = useLocation();
     const navigator = useNavigator();
-    const [router, setRouter] = createSignal<RouterComponent | undefined>();
     const [direction, length] = useRouteAction();
     let reset: undefined | (() => void);
 
@@ -277,15 +278,9 @@ export const getRoutes = (routes: RouteDefinition[]) => {
                 routerState.setPending(false);
               });
           }
-          batch(() => {
-            routeState.setRoute(route);
-            setRouter(() => route?.component);
-          });
+          routeState.setRoute(route);
         } else {
-          batch(() => {
-            routeState.setRoute(undefined);
-            setRouter(undefined);
-          });
+          routeState.setRoute(undefined);
         }
         release();
       };
@@ -311,7 +306,19 @@ export const getRoutes = (routes: RouteDefinition[]) => {
 
     return (
       <ErrorBoundary fallback={fallback}>
-        <Dynamic component={router()} />
+        <For each={routes}>
+          {(r) => {
+            return (
+              <Show when={r.path === routeState.route()?.path}>
+                <Show when={r.keepAlive} fallback={<Dynamic component={r.component} />}>
+                  <KeepAlive id={r.keepAlive!.id} onShow={r.keepAlive!.onShow} onHide={r.keepAlive!.onHide}>
+                    <Dynamic component={r.component} />
+                  </KeepAlive>
+                </Show>
+              </Show>
+            );
+          }}
+        </For>
       </ErrorBoundary>
     );
   };
@@ -342,4 +349,24 @@ export const useRoutes = (route: RouteDefinition | RouteDefinition[]) => {
   }, 0);
 
   return getRoutes(routes);
+};
+
+export const useKeepAlive = (): [
+  Accessor<KeepAliveElement[]>,
+  {
+    maxKeepAlive: Accessor<number | undefined>;
+    insertKeepAliveElement: (element: KeepAliveElement) => void;
+    removeKeepAliveElement: (id: string) => void;
+  },
+] => {
+  const { maxKeepAlive, keepAliveElements, insertKeepAliveElement, removeKeepAliveElement } =
+    useRouterState().keepAlive;
+  return [
+    keepAliveElements,
+    {
+      maxKeepAlive,
+      insertKeepAliveElement,
+      removeKeepAliveElement,
+    },
+  ];
 };

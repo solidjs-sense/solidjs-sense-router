@@ -1,8 +1,8 @@
-import { batch, createSignal, JSX, onCleanup, useContext } from 'solid-js';
+import { batch, createMemo, createSignal, JSX, onCleanup, useContext } from 'solid-js';
 import { RouteContext, RouterContext } from '../hook';
 import { api } from '../api';
 import { baseRegex, formatURL, joinBase, trimBase } from '../util';
-import { LeaveCallback, RouteDefinition, RouteState } from '../types';
+import { KeepAliveElement, LeaveCallback, RouteDefinition, RouteState } from '../types';
 
 export const WrapRoutes = (props: { children: JSX.Element }) => {
   const parentContext = useContext(RouteContext);
@@ -30,7 +30,7 @@ export const WrapRoutes = (props: { children: JSX.Element }) => {
   return <RouteContext.Provider value={context}>{props.children}</RouteContext.Provider>;
 };
 
-export const Router = (props: { url?: string; defaultBase?: string; children: JSX.Element }) => {
+export const Router = (props: { url?: string; defaultBase?: string; children: JSX.Element; maxKeepAlive?: number }) => {
   console.assert(
     api.isClient || (!api.isClient && !!props.url),
     'Router must be initialized with a url in server mode',
@@ -40,7 +40,9 @@ export const Router = (props: { url?: string; defaultBase?: string; children: JS
   const [pending, setPending] = createSignal(false);
   const [base, setBase] = createSignal(props.defaultBase ?? '');
   const [state, setState] = createSignal<any>(api.state);
+  const [keepAliveElements, setKeepAliveElements] = createSignal<KeepAliveElement[]>([]);
   const defaultUrl = formatURL({ url: props.url ? props.url : api.href! });
+  const maxKeepAlive = createMemo(() => props.maxKeepAlive);
 
   if (base() && baseRegex(base()).test(defaultUrl.pathname)) {
     defaultUrl.pathname = trimBase(base(), defaultUrl);
@@ -88,6 +90,30 @@ export const Router = (props: { url?: string; defaultBase?: string; children: JS
         setUrl,
         state,
         setState,
+        keepAlive: {
+          maxKeepAlive,
+          keepAliveElements,
+          setKeepAliveElements,
+          insertKeepAliveElement: (element: KeepAliveElement) => {
+            const max = maxKeepAlive();
+            setKeepAliveElements((pre) => {
+              if (max !== undefined && pre.length >= max) {
+                const unMountedOverflowEls = pre.filter((el) => el.unMounted).slice(max - pre.length - 1);
+                unMountedOverflowEls.forEach((unEl) => unEl.dispose());
+                return [element, ...pre.filter((el) => !unMountedOverflowEls.find((unEl) => unEl.id === el.id))];
+              }
+              return [element, ...pre];
+            });
+          },
+          removeKeepAliveElement: (id: string) => {
+            const element = keepAliveElements().find((el) => el.id === id);
+            if (!element) {
+              return;
+            }
+            element.dispose();
+            setKeepAliveElements((pre) => pre.filter((el) => el.id !== id));
+          },
+        },
       }}
     >
       <WrapRoutes>{props.children}</WrapRoutes>

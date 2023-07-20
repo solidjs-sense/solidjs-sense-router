@@ -7,6 +7,15 @@ import { bases } from './constant';
 const routes: RouteDefinition[] = [
   {
     path: '/',
+    keepAlive: {
+      id: 'home',
+      onShow: () => {
+        console.log('home show');
+      },
+      onHide: () => {
+        console.log('home hide');
+      },
+    },
     component: lazy(async () => import('./pages/home')),
   },
   {

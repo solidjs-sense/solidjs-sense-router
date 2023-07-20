@@ -2,6 +2,7 @@ export type { RouteDefinition, UrlParams } from './types';
 export { Router } from './components/router';
 export { Outlet } from './components/outlet';
 export { Link } from './components/link';
+export { KeepAlive } from './components/keep-alive';
 export {
   useRoutes,
   useLoading,
@@ -15,6 +16,7 @@ export {
   useRouteAction,
   useRouteState,
   useRouterState,
+  useKeepAlive,
   onRouteLeave,
   RouteContext,
   RouterContext,
